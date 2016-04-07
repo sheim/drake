@@ -1,5 +1,6 @@
-#ifndef __RIGIDBODYIK_H__
-#define __RIGIDBODYIK_H__
+#ifndef DRAKE_SYSTEMS_PLANTS_RIGIDBODYIK_H_
+#define DRAKE_SYSTEMS_PLANTS_RIGIDBODYIK_H_
+
 #include <string>
 #include <Eigen/Dense>
 #include <Eigen/StdVector>
@@ -17,7 +18,7 @@ class IKResults {
 
   const Eigen::VectorXd &getQSol() const { return q_sol; }
 
-  IKResults(){};
+  IKResults(){}
 };
 
 template <typename DerivedA, typename DerivedB, typename DerivedC>
@@ -149,7 +150,7 @@ DRAKEIK_EXPORT void inverseKinTraj(
  * inverseKinTraj  solves the inverse kinematics problem at all time together.
  * Try to generate a smooth trajectory by assuming cubic spline for the posture,
  * and minimize the acceleration of the interpolated trajectory
- * min_(q,qdot,qddot)
+ * min_(q, qdot, qddot)
  * sum(q(t(i))-q_nom(t(i)))'*Q*(q(t(i))-q_nom(t(i)))+qdot(t(i))'*Qv*qdot(t(i))+qddot(t(i))'*Qa*qddot(t(i))
  * @param nT    The length of time samples
  * @param t     t[i] is the i'th time
@@ -174,4 +175,5 @@ DRAKEIK_EXPORT void inverseKinTraj(
  *         ikoptions.fixInitialState = False   The solver will search for the
  * initial posture and velocity
  */
-#endif
+
+#endif  // DRAKE_SYSTEMS_PLANTS_RIGIDBODYIK_H_

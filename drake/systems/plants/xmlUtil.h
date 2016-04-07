@@ -1,5 +1,5 @@
-#ifndef DRAKE_URDFPARSINGUTIL_H_H
-#define DRAKE_URDFPARSINGUTIL_H_H
+#ifndef DRAKE_SYSTEMS_PLANTS_XMLUTIL_H_
+#define DRAKE_SYSTEMS_PLANTS_XMLUTIL_H_
 
 #include <string>
 #include <map>
@@ -53,6 +53,9 @@ DRAKEXMLUTIL_EXPORT bool parseVectorValue(tinyxml2::XMLElement* node,
 DRAKEXMLUTIL_EXPORT bool parseVectorValue(tinyxml2::XMLElement* node,
                                           const char* element_name,
                                           Eigen::Vector4d& val);
+DRAKEXMLUTIL_EXPORT bool parseStringValue(tinyxml2::XMLElement* node,
+                                          const char* element_name,
+                                          std::string& val);
 
 DRAKEXMLUTIL_EXPORT void originAttributesToTransform(tinyxml2::XMLElement* node,
                                                      Eigen::Isometry3d& T);
@@ -68,14 +71,10 @@ DRAKEXMLUTIL_EXPORT void poseValueToTransform(
     tinyxml2::XMLElement* node, const PoseMap& pose_map, Eigen::Isometry3d& T,
     const Eigen::Isometry3d& T_default_frame = Eigen::Isometry3d::Identity());
 
-DRAKEXMLUTIL_EXPORT bool parseStringValue(tinyxml2::XMLElement* node,
-                                          const char* element_name,
-                                          std::string& val);
-
 typedef std::map<std::string, std::string> PackageMap;
 DRAKEXMLUTIL_EXPORT void populatePackageMap(PackageMap& package_map);
 DRAKEXMLUTIL_EXPORT std::string resolveFilename(const std::string& filename,
                                                 const PackageMap& package_map,
                                                 const std::string& root_dir);
 
-#endif  // DRAKE_URDFPARSINGUTIL_H_H
+#endif  // DRAKE_SYSTEMS_PLANTS_XMLUTIL_H_

@@ -2,45 +2,115 @@
 For Developers
 **************
 
-If you have improvements to Drake, send us your pull requests! 
+If you have improvements to Drake, send us your pull requests!
 
 The standard github workflow is to fork the drake repository into your
 own github account, push your changes into a branch on that account,
 then (when your code is definitely ready) open a `pull request
 <https://help.github.com/articles/using-pull-requests/>`_ via the
-github website.  Please see the links below for information on code
-style, etc, and be prepared to engage in active code review on your
-pull request.
+github website.  Please read on for information on testing, code
+review, and code style.
 
-Your code will undergo a code review and will run the unit and
-regression tests on a number of build servers.  You can run those
-tests locally by running ``make test`` from the command line -- note
-that there are a lot of computationally demanding tests and this could
-run for a few hours depending on your machine.
-
-We would also like to hear about your success stories if you've used
+We would like to hear about your success stories if you've used
 Drake in your own projects.  Please consider contributing to our :doc:`gallery`
 by editing ``gallery.rst`` in the ``drake/doc/`` directory and submitting a pull
 request.
 
-Important note: Drake is an open source project licensed under
+Licensing
+=========
+
+**Important note:** Drake is an open source project licensed under
 extremely flexible terms intended to encourage use by anyone, for any
 purpose. When you make a contribution to the Drake project, you are
 agreeing to do so under those same terms.
 
-Here are some useful links
+Testing
+=======
 
+When you create a pull request, unit and regression tests will
+automatically run on a number of build servers.  You can run those
+tests locally by running ``make test`` from the command line. Note
+that there are a lot of computationally demanding tests and this could
+run for a few hours depending on your machine.
+
+Your change must include unit tests that protect it against regressions,
+and those tests must pass on all platforms supported by Drake.
+
+**For C++ changes,** please use the googletest framework. It is already
+available in the superbuild.
+
+**For MATLAB changes,** please write an example and add it as a test in
+directory CMakeLists.txt using add_matlab_test().  ctest will consider
+the test failed if it times out or calls ``error``.
+
+Code Review
+===========
+
+For complex changes, especially those that will span multiple PRs, please
+open a GitHub issue and solicit design feedback before you invest a lot of
+time in code.
+
+Be prepared to engage in active code review on your pull requests.  The Drake
+code review process has two phases: feature review and platform review. You
+are responsible for finding reviewers, and for providing them the information
+they need to review your change effectively. If a reviewer asks you for more
+information, that is a sign you should add more documentation to your PR.
+
+**Feature Review.** After creating your pull request, assign it to someone
+else on your team for feature review. Choose the person most familiar
+with the context of your pull request. This reviewer is responsible for
+protecting your team by inspecting for bugs, for test coverage, and for
+alignment with the team's goals. During this review, you and your reviewer
+should also strive to minimize the number of changes that will be necessary
+in platform review.
+
+**Platform Review.** After your feature reviewer has signed off on your change,
+reassign it to a Drake owner for platform review. The owner will inspect for
+architectural compatibility, stability, performance, test coverage, and style.
+Once satisfied, the owner merges the PR.
+
+The following github users are Drake owners. If possible, seek platform review
+from an owner who has previously reviewed related changes. Shared context will
+make the review faster.
+
+- @david-german-tri (Toyota Research Institute)
+- @jwnimmer-tri (Toyota Research Institute)
+- @psiorx (MIT)
+- @sherm1 (Toyota Research Institute)
+- @RussTedrake (MIT / Toyota Research Institute)
+
+
+Continuous Integration Notes
+============================
 .. toctree::
-	:maxdepth: 1
+    :maxdepth: 1
 
-	code_style_guide
-	jenkins
-	known_issue
+    CDash <https://drake-cdash.csail.mit.edu/index.php?project=Drake>
+    jenkins
 
-Here are some tips for using our favorite IDEs for development with Drake
-
+IDE Notes
+=========
 * `CLion <https://github.com/tkoolen/drake/wiki/CLion-setup-(experimental)>`_
 * `Eclipse <https://github.com/tkoolen/drake/wiki/Eclipse-setup-(experimental)>`_
 
+Operating System Notes
+======================
+.. toctree::
+    :maxdepth: 1
 
+    development_on_osx
 
+Programming Style Notes
+=======================
+.. toctree::
+    :maxdepth: 1
+
+    code_style_guide
+    code_style_tools
+
+Version Control
+===============
+.. toctree::
+    :maxdepth: 1
+
+    no_push_to_origin

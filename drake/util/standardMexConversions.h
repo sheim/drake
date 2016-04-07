@@ -1,9 +1,9 @@
+#ifndef DRAKE_UTIL_STANDARDMEXCONVERSIONS_H_
+#define DRAKE_UTIL_STANDARDMEXCONVERSIONS_H_
+
 //
 // Created by Twan Koolen on 10/10/15.
 //
-
-#ifndef DRAKE_STANDARDMEXCONVERSIONS_H
-#define DRAKE_STANDARDMEXCONVERSIONS_H
 
 #include <string>
 #include "drake/util/mexify.h"
@@ -255,7 +255,7 @@ int toMex(
     mxArray* dest[], int nlhs) {
   if (nlhs > 0) dest[0] = eigenToMatlabGeneral<Rows, Cols>(source);
   return 1;
-};
+}
 
 template <typename A, typename B>
 int toMex(const std::pair<A, B>& source, mxArray* dest[], int nlhs) {
@@ -309,4 +309,4 @@ int toMex(const std::tuple<Ts...>& source, mxArray* dest[], int nlhs) {
                                                                nlhs);
 }
 
-#endif  // DRAKE_STANDARDMEXCONVERSIONS_H
+#endif  // DRAKE_UTIL_STANDARDMEXCONVERSIONS_H_

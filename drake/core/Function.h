@@ -1,3 +1,5 @@
+#ifndef DRAKE_CORE_FUNCTION_H_
+#define DRAKE_CORE_FUNCTION_H_
 
 #include <string>
 #include <vector>
@@ -35,7 +37,7 @@ struct InputOutputRelation {
   Form form;
   // todo: add sparsity info
 
-  InputOutputRelation(Form f) : form(f){};
+  InputOutputRelation(Form f) : form(f){}
 
   static bool isA(const Form& f, const Form& base) {
     if (f == base || base == Form::ARBITRARY) return true;
@@ -74,7 +76,7 @@ struct InputOutputRelation {
   /*
   static InputOutputRelation linearCombination(const InputOutputRelation& g,
   const InputOutputRelation& f) {
-    return InputOutputRelation(leastCommonAncestor({g.form,f.form,LINEAR}));
+    return InputOutputRelation(leastCommonAncestor({g.form, f.form, LINEAR}));
   }*/
   static InputOutputRelation combine(
       const InputOutputRelation& a,
@@ -188,6 +190,8 @@ struct FunctionTraits<std::unique_ptr<F>> {
 
 // idea: use templates to support multi-input, multi-output functions which
 // implement, e.g.
-// void eval(x1,...,xn,  y1,...,ym), and
-// InputOutputRelation getInputOutputRelation(input_index,output_index)
+// void eval(x1,..., xn,  y1,..., ym), and
+// InputOutputRelation getInputOutputRelation(input_index, output_index)
 };
+
+#endif  // DRAKE_CORE_FUNCTION_H_

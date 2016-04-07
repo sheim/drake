@@ -1,5 +1,5 @@
-#ifndef DRAKE_SOLVERS_POLYNOMIAL_POLYNOMIAL_H_
-#define DRAKE_SOLVERS_POLYNOMIAL_POLYNOMIAL_H_
+#ifndef DRAKE_UTIL_POLYNOMIAL_H_
+#define DRAKE_UTIL_POLYNOMIAL_H_
 
 #include <Eigen/Core>
 #include <complex>
@@ -56,7 +56,7 @@ class DRAKEPOLYNOMIAL_EXPORT Polynomial {
   bool is_univariate;
 
  public:
-  Polynomial(void) : is_univariate(true){};
+  Polynomial(void) : is_univariate(true){}
   Polynomial(const CoefficientType& scalar);  // this is required for some Eigen
                                               // operations when used in a
                                               // polynomial matrix
@@ -279,4 +279,4 @@ std::ostream& operator<<(
 
 typedef Polynomial<double> Polynomiald;
 
-#endif /* DRAKE_SOLVERS_POLYNOMIAL_POLYNOMIAL_H_ */
+#endif  // DRAKE_UTIL_POLYNOMIAL_H_

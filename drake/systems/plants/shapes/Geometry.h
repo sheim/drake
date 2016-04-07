@@ -1,5 +1,5 @@
-#ifndef __DrakeShapesGeometry_H__
-#define __DrakeShapesGeometry_H__
+#ifndef DRAKE_SYSTEMS_PLANTS_SHAPES_GEOMETRY_H_
+#define DRAKE_SYSTEMS_PLANTS_SHAPES_GEOMETRY_H_
 
 #include <string>
 
@@ -30,13 +30,13 @@ class DRAKESHAPES_EXPORT Geometry {
 
   virtual Geometry *clone() const;
 
-  const Shape getShape() const;
+  Shape getShape() const;
 
   virtual void getPoints(Eigen::Matrix3Xd &points) const;
   virtual void getBoundingBoxPoints(Eigen::Matrix3Xd &points) const;
   virtual void getTerrainContactPoints(Eigen::Matrix3Xd &points) const {
     points = Eigen::Matrix3Xd();
-  };
+  }
 
  protected:
   Geometry(Shape shape);
@@ -128,4 +128,5 @@ class DRAKESHAPES_EXPORT MeshPoints : public Geometry {
   Eigen::Matrix3Xd points;
 };
 }
-#endif
+
+#endif  // DRAKE_SYSTEMS_PLANTS_SHAPES_GEOMETRY_H_

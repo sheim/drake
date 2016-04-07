@@ -1,5 +1,5 @@
-#ifndef HELICALJOINT_H_
-#define HELICALJOINT_H_
+#ifndef DRAKE_SYSTEMS_PLANTS_JOINTS_HELICALJOINT_H_
+#define DRAKE_SYSTEMS_PLANTS_JOINTS_HELICALJOINT_H_
 
 #include "FixedAxisOneDoFJoint.h"
 
@@ -21,9 +21,9 @@ class DRAKEJOINTS_EXPORT HelicalJoint
                                            transform_to_parent_body,
                                            spatialJointAxis(axis, pitch)),
         axis(axis),
-        pitch(pitch){};
+        pitch(pitch){}
 
-  virtual ~HelicalJoint(){};
+  virtual ~HelicalJoint(){}
 
   template <typename DerivedQ>
   Eigen::Transform<typename DerivedQ::Scalar, 3, Eigen::Isometry>
@@ -44,4 +44,4 @@ class DRAKEJOINTS_EXPORT HelicalJoint
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-#endif /* HELICALJOINT_H_ */
+#endif  // DRAKE_SYSTEMS_PLANTS_JOINTS_HELICALJOINT_H_

@@ -1,5 +1,5 @@
-#ifndef REVOLUTEJOINT_H_
-#define REVOLUTEJOINT_H_
+#ifndef DRAKE_SYSTEMS_PLANTS_JOINTS_REVOLUTEJOINT_H_
+#define DRAKE_SYSTEMS_PLANTS_JOINTS_REVOLUTEJOINT_H_
 
 #include "FixedAxisOneDoFJoint.h"
 #include <Eigen/Geometry>
@@ -22,9 +22,9 @@ class DRAKEJOINTS_EXPORT RevoluteJoint
                                             spatialJointAxis(_rotation_axis)),
         rotation_axis(_rotation_axis) {
     assert(std::abs(rotation_axis.norm() - 1.0) < 1e-10);
-  };
+  }
 
-  virtual ~RevoluteJoint(){};
+  virtual ~RevoluteJoint(){}
 
   template <typename DerivedQ>
   Eigen::Transform<typename DerivedQ::Scalar, 3, Eigen::Isometry>
@@ -44,4 +44,4 @@ class DRAKEJOINTS_EXPORT RevoluteJoint
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-#endif /* REVOLUTEJOINT_H_ */
+#endif  // DRAKE_SYSTEMS_PLANTS_JOINTS_REVOLUTEJOINT_H_

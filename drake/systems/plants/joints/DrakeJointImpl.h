@@ -1,5 +1,5 @@
-#ifndef DRAKE_DRAKEJOINTIMPL_H
-#define DRAKE_DRAKEJOINTIMPL_H
+#ifndef DRAKE_SYSTEMS_PLANTS_JOINTS_DRAKEJOINTIMPL_H_
+#define DRAKE_SYSTEMS_PLANTS_JOINTS_DRAKEJOINTIMPL_H_
 
 #include "drake/systems/plants/joints/DrakeJoint.h"
 
@@ -62,8 +62,8 @@ class DrakeJointImpl : public DrakeJoint {
                  int num_positions, int num_velocities)
       : DrakeJoint(name, transform_to_parent_body, num_positions,
                    num_velocities),
-        derived(_derived){};
-  virtual ~DrakeJointImpl(){};
+        derived(_derived){}
+  virtual ~DrakeJointImpl(){}
 
   POSITION_AND_VELOCITY_DEPENDENT_METHODS_IMPL(double)
   POSITION_AND_VELOCITY_DEPENDENT_METHODS_IMPL(DrakeJoint::AutoDiffFixedMaxSize)
@@ -84,4 +84,4 @@ int sign(T val) {
   return (T(0) < val) - (val < T(0));
 }
 
-#endif  // DRAKE_DRAKEJOINTIMPL_H
+#endif  // DRAKE_SYSTEMS_PLANTS_JOINTS_DRAKEJOINTIMPL_H_

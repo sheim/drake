@@ -14,7 +14,7 @@ void drakePrintMatrix(const MatrixXd &mat) {
     }
     printf("\n");
   }
-};
+}
 
 namespace DrakeRigidBodyConstraint {
 Vector3d com_pts = Vector3d::Zero();
@@ -45,7 +45,7 @@ RigidBodyConstraint::RigidBodyConstraint(const RigidBodyConstraint &rhs)
   this->tspan[1] = rhs.tspan[1];
 }
 
-RigidBodyConstraint::~RigidBodyConstraint(void){};
+RigidBodyConstraint::~RigidBodyConstraint(void){}
 
 std::string RigidBodyConstraint::getTimeString(const double *t) const {
   std::string time_str;
@@ -390,7 +390,7 @@ SingleTimeLinearPostureConstraint::SingleTimeLinearPostureConstraint(
   int lenA = static_cast<int>(iAfun.size());
   if (jAvar.size() != lenA || A.size() != lenA) {
     std::cerr << "Drake:RigidBodyConstraint:SingleTimeLinearPostureConstraint:"
-                 "iAfun,jAvar and A should be of the same size" << std::endl;
+                 "iAfun, jAvar and A should be of the same size" << std::endl;
   }
   std::set<std::pair<int, int>> mat_ind_set;
   for (int i = 0; i < lenA; i++) {
@@ -399,7 +399,7 @@ SingleTimeLinearPostureConstraint::SingleTimeLinearPostureConstraint(
   }
   if (mat_ind_set.size() != lenA) {
     std::cerr << "Drake:RigidBodyConstraint:SingleTimeLinearPostureConstraint:"
-                 "The pair (iAfun(i),jAvar(i)) is not unique" << std::endl;
+                 "The pair (iAfun(i), jAvar(i)) is not unique" << std::endl;
   }
   if (iAfun.maxCoeff() != this->num_constraint - 1) {
     std::cerr << "Drake:RigidBodyConstraint:SingleTimeLinearPostureConstraint:"
@@ -1915,7 +1915,7 @@ AllBodiesClosestDistanceConstraint::AllBodiesClosestDistanceConstraint(
   // END_DEBUG
   num_constraint = static_cast<int>(c.size());
   this->type = RigidBodyConstraint::AllBodiesClosestDistanceConstraintType;
-};
+}
 
 // AllBodiesClosestDistanceConstraint::AllBodiesClosestDistanceConstraint(const
 // AllBodiesClosestDistanceConstraint &rhs)
@@ -1927,7 +1927,7 @@ AllBodiesClosestDistanceConstraint::AllBodiesClosestDistanceConstraint(
 // double t = 0;
 // VectorXd c;
 // MatrixXd dc;
-// eval(&t,c,dc);
+// eval(&t, c, dc);
 // num_constraint = c.size();
 //}
 
@@ -1984,7 +1984,7 @@ void AllBodiesClosestDistanceConstraint::eval(const double *t,
     c.resize(0);
     dc.resize(0, 0);
   }
-};
+}
 
 void AllBodiesClosestDistanceConstraint::bounds(const double *t, VectorXd &lb,
                                                 VectorXd &ub) const {
@@ -2019,7 +2019,7 @@ MinDistanceConstraint::MinDistanceConstraint(
       active_group_names(active_group_names) {
   this->num_constraint = 1;
   this->type = RigidBodyConstraint::MinDistanceConstraintType;
-};
+}
 
 void MinDistanceConstraint::eval(const double *t,
                                  KinematicsCache<double> &cache, VectorXd &c,
@@ -2141,7 +2141,7 @@ void MinDistanceConstraint::eval(const double *t,
   // DEBUG
   // std::cout << "MinDistanceConstraint::eval: END" << std::endl;
   // END_DEBUG
-};
+}
 
 void MinDistanceConstraint::scaleDistance(
     const Eigen::VectorXd &dist, Eigen::VectorXd &scaled_dist,

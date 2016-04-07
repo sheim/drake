@@ -1,5 +1,5 @@
-#ifndef SYSTEMS_ROBOTINTERFACES_QPLOCOMOTIONPLAN_H_
-#define SYSTEMS_ROBOTINTERFACES_QPLOCOMOTIONPLAN_H_
+#ifndef DRAKE_SYSTEMS_ROBOTINTERFACES_QPLOCOMOTIONPLAN_H_
+#define DRAKE_SYSTEMS_ROBOTINTERFACES_QPLOCOMOTIONPLAN_H_
 
 #include <vector>
 #include <map>
@@ -67,7 +67,7 @@ struct KneeSettings {
 };
 
 struct QPLocomotionPlanSettings {
-  QPLocomotionPlanSettings() : min_foot_shift_delay(0.1){};
+  QPLocomotionPlanSettings() : min_foot_shift_delay(0.1){}
 
   double duration;
   std::vector<RigidBodySupportState> supports;
@@ -180,7 +180,7 @@ class QPLocomotionPlan {
    * To allow the controller to use that support only if it thinks the body is
    * in contact with the terrain, try KINEMATIC_OR_SENSED
    */
-  const static std::map<SupportLogicType, std::vector<bool> >
+  static const std::map<SupportLogicType, std::vector<bool> >
       support_logic_maps;
 
  public:
@@ -267,4 +267,4 @@ class QPLocomotionPlan {
       RigidBodyTree& robot, const std::map<Side, std::string>& foot_body_ids);
 };
 
-#endif /* SYSTEMS_ROBOTINTERFACES_QPLOCOMOTIONPLAN_H_ */
+#endif  // DRAKE_SYSTEMS_ROBOTINTERFACES_QPLOCOMOTIONPLAN_H_

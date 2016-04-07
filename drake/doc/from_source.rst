@@ -15,7 +15,7 @@ Getting Drake
 
 Drake is compliant with the `PODs <http://sourceforge.net/p/pods/home/Home/>`_ software development guidelines.  For convenience, we have created pods or wrapper pods for most of the prerequisites, externals, and solvers that you might want to use with Drake.  Some of these will require you to have access to the software licenses.
 
-Note: If you are Windows, you will want to make sure that ``git`` is set to `handle cross-platform linefeed issues <https://git-scm.com/book/tr/v2/Customizing-Git-Git-Configuration#idp31554304>`_.  These options appear to be enabled by default in the cygwin installation of ``git``, but must be set manually on the native windows version.
+Note: If you are using Windows, you will want to make sure that ``git`` is set to `handle cross-platform linefeed issues <https://git-scm.com/book/tr/v2/Customizing-Git-Git-Configuration#idp31554304>`_.  These options appear to be enabled by default in the cygwin installation of ``git``, but must be set manually on the native windows version.
 
 Now run::
 
@@ -28,8 +28,8 @@ Note: the build process may encounter problems if you have unusual characters li
 If you want to use the private externals
 ========================================
 
-Drake includes support for some externals which we are not able to redistribute directly 
-(SNOPT, SEDUMI, BERTINI, ...).  In order to have drake locally install these for you, you must have access to the corresponding private github repositories, and must set your machine up with SSH keys.  
+Drake includes support for some externals which we are not able to redistribute directly
+(SNOPT, SEDUMI, BERTINI, ...).  In order to have drake locally install these for you, you must have access to the corresponding private github repositories, and must set your machine up with SSH keys.
 
 Follow the instructions here:
 https://help.github.com/articles/generating-ssh-keys/
@@ -45,14 +45,12 @@ Before running build, you will need to follow the instructions for your host sys
 .. toctree::
 	:maxdepth: 1
 
-	ubuntu
+	cygwin
+	fedora
 	homebrew
 	macports
+	ubuntu
 	windows
-	cygwin
-
-(Note: there has been reported success building on Redhat using the Ubuntu installation instructions, and changing ``apt-get`` to ``yum`` inside the ``install_prereqs.sh``, but we haven't tested that ourselves).
-
 
 Build the collection
 ====================
@@ -63,7 +61,21 @@ Build the collection
 	make
 
 **NOTE: do not use sudo here**.
-Following the pods guidelines, make will automatically perform a local installation.  Just ``make`` is sufficient, and will prevent problems later.  Feel free to use ``make -j`` if your platform supports it.
+Following the pods guidelines, make will automatically perform a local installation.  Just ``make`` is sufficient, and will prevent problems later.
+
+Feel free to use ``make -j`` if your platform supports it.
+
+To include all of the symbols for debugging purposes, execute:
+
+::
+
+    BUILD_TYPE=Debug make
+
+To include all symbols and get details about the actual compiler and linker commands, execute:
+
+::
+
+    BUILD_TYPE=Debug make VERBOSE=true
 
 
 Test your installation

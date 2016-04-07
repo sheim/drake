@@ -1,5 +1,5 @@
-#ifndef DRAKE_BOTVISUALIZER_H
-#define DRAKE_BOTVISUALIZER_H
+#ifndef DRAKE_SYSTEMS_PLANTS_BOTVISUALIZER_H_
+#define DRAKE_SYSTEMS_PLANTS_BOTVISUALIZER_H_
 
 #include <lcm/lcm-cpp.hpp>
 #include <Eigen/Dense>
@@ -34,13 +34,13 @@ class BotVisualizer {
   template <typename ScalarType>
   using InputVector = RobotStateVector<ScalarType>;
 
-  BotVisualizer(const std::shared_ptr<lcm::LCM> &_lcm,
-                const std::shared_ptr<RigidBodyTree> &tree)
+  BotVisualizer(std::shared_ptr<lcm::LCM> _lcm,
+                std::shared_ptr<RigidBodyTree> tree)
       : tree(tree), lcm(_lcm) {
     init();
   }
 
-  BotVisualizer(const std::shared_ptr<lcm::LCM> &_lcm,
+  BotVisualizer(std::shared_ptr<lcm::LCM> _lcm,
                 const std::string &urdf_filename,
                 const DrakeJoint::FloatingBaseType floating_base_type)
       : tree(new RigidBodyTree(urdf_filename, floating_base_type)), lcm(_lcm) {
@@ -144,7 +144,7 @@ class BotVisualizer {
   StateVector<double> dynamics(const double &t, const StateVector<double> &x,
                                const InputVector<double> &u) const {
     return StateVector<double>();
-  };
+  }
 
   OutputVector<double> output(const double &t, const StateVector<double> &x,
                               const InputVector<double> &u) const {
@@ -182,4 +182,4 @@ class BotVisualizer {
 
 }  // end namespace Drake
 
-#endif  // DRAKE_BOTVISUALIZER_H
+#endif  // DRAKE_SYSTEMS_PLANTS_BOTVISUALIZER_H_

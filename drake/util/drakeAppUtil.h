@@ -1,5 +1,5 @@
-#ifndef DRAKE_DRAKEAPPUTIL_H
-#define DRAKE_DRAKEAPPUTIL_H
+#ifndef DRAKE_UTIL_DRAKEAPPUTIL_H_
+#define DRAKE_UTIL_DRAKEAPPUTIL_H_
 
 #include <string>
 #include <algorithm>
@@ -28,7 +28,7 @@ char* getCommandLineOption(char** begin, char** end,
  *(getopt is not available on msvc)
  *
  * Example usage:
- * if(commandLineOptionExists(argv, argv+argc, "-h")) { ... }
+ * if (commandLineOptionExists(argv, argv+argc, "-h")) { ... }
  *
  * See also getCommandLineOption
  */
@@ -38,4 +38,4 @@ bool commandLineOptionExists(char** begin, char** end,
   return std::find(begin, end, option) != end;
 }
 
-#endif  // DRAKE_DRAKEAPPUTIL_H
+#endif  // DRAKE_UTIL_DRAKEAPPUTIL_H_

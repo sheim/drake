@@ -1,5 +1,5 @@
-#ifndef DRAKE_KINEMATICSCACHE_H
-#define DRAKE_KINEMATICSCACHE_H
+#ifndef DRAKE_SYSTEMS_PLANTS_KINEMATICSCACHE_H_
+#define DRAKE_SYSTEMS_PLANTS_KINEMATICSCACHE_H_
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -212,14 +212,14 @@ class KinematicsCache {
   }
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> getX() const {
-    if(hasV()) {
+    if (hasV()) {
       Eigen::Matrix<Scalar, Eigen::Dynamic, 1> x(getNumPositions() + getNumVelocities());
       x << q, v;
       return x;
     } else {
       return getQ();
     }
-  };
+  }
 
   bool hasV() const { return velocity_vector_valid; }
 
@@ -270,4 +270,4 @@ class KinematicsCache {
 #endif
 };
 
-#endif  // DRAKE_KINEMATICSCACHE_H
+#endif  // DRAKE_SYSTEMS_PLANTS_KINEMATICSCACHE_H_

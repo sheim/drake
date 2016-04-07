@@ -25,7 +25,7 @@ class DRAKETRAJECTORIES_EXPORT PiecewisePolynomial
       polynomials;  // a PolynomialMatrix for each piece
 
  public:
-  virtual ~PiecewisePolynomial(){};
+  virtual ~PiecewisePolynomial(){}
 
   // default constructor; just leaves segment_times and polynomials empty
   PiecewisePolynomial();
@@ -110,4 +110,4 @@ class DRAKETRAJECTORIES_EXPORT PiecewisePolynomial
                                       Eigen::Index row, Eigen::Index col) const;
 };
 
-#endif /* DRAKE_SYSTEMS_TRAJECTORIES_PIECEWISEPOLYNOMIAL_H_ */
+#endif  // DRAKE_SYSTEMS_TRAJECTORIES_PIECEWISEPOLYNOMIAL_H_
