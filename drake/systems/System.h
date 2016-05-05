@@ -1,10 +1,12 @@
-#ifndef DRAKE_SYSTEMS_SYSTEM_H_
-#define DRAKE_SYSTEMS_SYSTEM_H_
+#pragma once
 
 #include <memory>
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include "drake/core/Core.h"
+
+#include "drake/core/Function.h"
+#include "drake/core/Gradient.h"
+#include "drake/core/Vector.h"
 
 namespace Drake {
 
@@ -241,5 +243,3 @@ typename System::template StateVector<Scalar> createStateVector(
 }
 
 }  // end namespace Drake
-
-#endif  // DRAKE_SYSTEMS_SYSTEM_H_

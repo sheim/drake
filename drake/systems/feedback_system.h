@@ -1,8 +1,10 @@
-#ifndef DRAKE_SYSTEMS_FEEDBACK_SYSTEM_H_
-#define DRAKE_SYSTEMS_FEEDBACK_SYSTEM_H_
+#pragma once
 
 #include <memory>
-#include "drake/core/Core.h"
+
+#include "drake/core/Function.h"
+#include "drake/core/Gradient.h"
+#include "drake/core/Vector.h"
 #include "drake/systems/System.h"
 
 namespace Drake {
@@ -141,5 +143,3 @@ std::shared_ptr<FeedbackSystem<System1, System2>> feedback(
 }
 
 }  // namespace Drake
-
-#endif  // DRAKE_SYSTEMS_FEEDBACK_SYSTEM_H_

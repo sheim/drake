@@ -1,5 +1,4 @@
-#ifndef DRAKE_SYSTEMS_PLANTS_JOINTS_PRISMATICJOINT_H_
-#define DRAKE_SYSTEMS_PLANTS_JOINTS_PRISMATICJOINT_H_
+#pragma once
 
 #include "FixedAxisOneDoFJoint.h"
 
@@ -34,7 +33,7 @@ class DRAKEJOINTS_EXPORT PrismaticJoint
     return ret;
   }
 
-  virtual ~PrismaticJoint(){}
+  virtual ~PrismaticJoint() {}
 
  private:
   static Eigen::Matrix<double, TWIST_SIZE, 1> spatialJointAxis(
@@ -43,5 +42,3 @@ class DRAKEJOINTS_EXPORT PrismaticJoint
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
-
-#endif  // DRAKE_SYSTEMS_PLANTS_JOINTS_PRISMATICJOINT_H_

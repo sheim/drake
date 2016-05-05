@@ -1,5 +1,4 @@
-#ifndef DRAKE_SYSTEMS_LINEARSYSTEM_H_
-#define DRAKE_SYSTEMS_LINEARSYSTEM_H_
+#pragma once
 
 #include "drake/systems/System.h"
 
@@ -115,12 +114,10 @@ class Gain : public LinearSystem<NullVector, InputVec, OutputVec> {
   using InputVector = InputVec<ScalarType>;
 
   template <typename Derived>
-  Gain(const Eigen::MatrixBase<Derived>& D)
+  explicit Gain(const Eigen::MatrixBase<Derived>& D)
       : LinearSystem<NullVector, InputVec, OutputVec>(
             Eigen::Matrix<double, 0, 0>(), Eigen::Matrix<double, 0, 0>(),
             Eigen::Matrix<double, Eigen::Dynamic, 0>(D.rows(), 0), D) {}
 };
 
 }  // end namespace Drake
-
-#endif  // DRAKE_SYSTEMS_LINEARSYSTEM_H_

@@ -1,4 +1,5 @@
-#include "mex.h"
+#include <mex.h>
+
 #include "drake/systems/plants/RigidBodyTree.h"
 #include "constraint/RigidBodyConstraint.h"
 #include "drake/systems/plants/IKoptions.h"
@@ -11,10 +12,11 @@ using namespace Eigen;
 
 void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
   if (nrhs < 7) {
-    mexErrMsgIdAndTxt("Drake:inverseKinTrajmex:NotEnoughInputs",
-                      "Usage "
-                      "inverseKinPointwisemex(model_ptr, t, qdot0_seed, q_seed, q_"
-                      "nom, constraint1, constraint2,..., ikoptions");
+    mexErrMsgIdAndTxt(
+        "Drake:inverseKinTrajmex:NotEnoughInputs",
+        "Usage "
+        "inverseKinPointwisemex(model_ptr, t, qdot0_seed, q_seed, q_"
+        "nom, constraint1, constraint2,..., ikoptions");
   }
   RigidBodyTree* model = (RigidBodyTree*)getDrakeMexPointer(prhs[0]);
   int nq = model->num_positions;
@@ -39,8 +41,8 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
   int info = 0;
   vector<string> infeasible_constraint;
   inverseKinTraj(model, nT, t, qdot0_seed, q_seed, q_nom, num_constraints,
-                 constraint_array, q_sol, qdot_sol, qddot_sol, info,
-                 infeasible_constraint, *ikoptions);
+                 constraint_array, *ikoptions, &q_sol, &qdot_sol, &qddot_sol,
+                 &info, &infeasible_constraint);
   plhs[3] = mxCreateDoubleScalar((double)info);
   mwSize name_dim[1] = {static_cast<mwSize>(infeasible_constraint.size())};
   plhs[4] = mxCreateCellArray(1, name_dim);

@@ -9,19 +9,37 @@ endif()
 
 # PODs out-of-source build logic
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-	find_file(_build_dir build PATHS ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/.. ${PROJECT_SOURCE_DIR}/../.. ${PROJECT_SOURCE_DIR}/../../.. ${PROJECT_SOURCE_DIR}/../../../..)
-	if (_build_dir)
-		set(CMAKE_INSTALL_PREFIX "${_build_dir}" CACHE STRING
-		"install prefix" FORCE)
+	if(POD_BUILD)
+		find_file(_build_dir build PATHS ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/.. ${PROJECT_SOURCE_DIR}/../.. ${PROJECT_SOURCE_DIR}/../../.. ${PROJECT_SOURCE_DIR}/../../../..)
+		if (_build_dir)
+			set(CMAKE_INSTALL_PREFIX "${_build_dir}" CACHE STRING
+				"Prefix for installation of sub-packages (note: required during build!)" FORCE)
+		else()
+			execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/build)
+			set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/build
+			CACHE STRING "install prefix" FORCE)
+		endif()
 	else()
-		execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_SOURCE_DIR}/build)
-		set(CMAKE_INSTALL_PREFIX ${PROJECT_SOURCE_DIR}/build
-		CACHE STRING "install prefix" FORCE)
+		set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE STRING
+			"Prefix for installation of sub-packages (note: required during build!)" FORCE)
 	endif()
 endif()
 message(STATUS CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX})
 
 include(ExternalProject)
+function(drake_forcebuild proj)
+  if(CMAKE_CONFIGURATION_TYPES)
+    set(build_stamp_file "${CMAKE_CURRENT_BINARY_DIR}/${proj}-prefix/src/${proj}-stamp/${CMAKE_CFG_INTDIR}/${proj}-build")
+  else()
+    set(build_stamp_file "${CMAKE_CURRENT_BINARY_DIR}/${proj}-prefix/src/${proj}-stamp/${proj}-build")
+  endif()
+  ExternalProject_Add_Step(${proj} forcebuild
+    COMMAND ${CMAKE_COMMAND} -E remove ${build_stamp_file}
+    COMMENT "Forcing build step for '${proj}'"
+    DEPENDEES build
+    ALWAYS 1
+    )
+endfunction()
 
 # Require Java at the super-build level so libbot cannot configure without finding Java
 find_package(Java REQUIRED)
@@ -43,7 +61,7 @@ option(REMOVE_UNUSED_EXTERNALS "enable this to remove those projects from disk" 
 
 # ON by default:
 option(WITH_EIGEN		"required c++ matrix library.  only disable if you have it already."    ON)
-option(WITH_GOOGLETEST "required c++ unit test library.  only disable ifyou have it already." ON)
+option(WITH_GOOGLETEST "required c++ unit test library.  only disable if you have it already." ON)
 option(WITH_SWIGMAKE    "helper tools to build python & MATLAB wrappers for C++ libraries with Eigen" ON)
 option(WITH_BULLET 		"used for collision detection" 	ON)
 option(WITH_LCM 		"interprocess communications protocol for visualizers, etc" ON)
@@ -55,10 +73,24 @@ else()
 	option(WITH_LIBBOT 		"simple open-gl visualizer + lcmgl for director"	ON) # there is hope, but i spent a long time cleaning up c/c++ language errors trying to make msvc happy.. and still had a long way to go.
 	option(WITH_SWIG_MATLAB "A version of SWIG with MATLAB support" ON)
 endif()
-find_program(matlab matlab)
-if (matlab)
-	option(WITH_SPOTLESS	"polynomial optimization front-end for MATLAB"  ON)
-endif()
+
+include(CMakeDependentOption)
+option(DISABLE_MATLAB "Don't use MATLAB even if it is present." OFF)
+if (DISABLE_MATLAB)
+	message(STATUS "MATLAB is disabled.")
+else()
+	find_program(matlab matlab)
+	if (matlab)
+		message(STATUS "Found MATLAB at " ${matlab})
+	else ()
+		message(STATUS "Looked for MATLAB but could not find it.")
+	endif(matlab)
+endif (DISABLE_MATLAB)
+
+# If DISABLE_MATLAB is set or matlab is not found, WITH_SPOTLESS is hidden and default OFF.
+# Otherwise, WITH_SPOTLESS is visible and default ON.
+CMAKE_DEPENDENT_OPTION(WITH_SPOTLESS "polynomial optimization front-end for MATLAB" ON "NOT DISABLE_MATLAB;matlab" OFF)
+
 option(WITH_YAML_CPP "library for reading and writing yaml configuration files" ON)
 
 option(WITH_SNOPT_PRECOMPILED "precompiled binaries only for snopt; the source requires a license (will be disabled if WITH_SNOPT=ON)"  ON)
@@ -72,14 +104,7 @@ if (NOT WIN32) # many of these might work on win32 with little or no work... the
 	option(WITH_OCTOMAP 	"provides oct-tree data structures")
 	option(WITH_GUROBI 		"convex/integer optimization solver; free for academics (will prompt you for login bits)")
 	option(WITH_MOSEK 		"convex optimization solver; free for academics")
-	# TODO(sam.creasey): Compilation of the NLopt external works
-	# frequently on OSX, but not always (working in the travis CI
-	# build, not working in the drake005 CI build).  I would have
-	# liked to continue to offer the option on OSX, but drake005
-	# forces all supported externals on, so I can't even do that.
-	if (NOT APPLE)
-	  option(WITH_NLOPT 		"nonlinear optimization solver"  ON)
-	endif()
+	option(WITH_NLOPT 		"nonlinear optimization solver"  ON)
 	option(WITH_YALMIP 		"free optimization front-end for MATLAB")
 	option(WITH_GLOPTIPOLY 	"free global polynomial optimization tooblox")
 	option(WITH_BERTINI 	"solve polynomial equations; free but pod requires permissions (can't redistribute)")
@@ -108,7 +133,7 @@ set(bot_core_lcmtypes_dependencies lcm)
 set(director_dependencies lcm bot_core_lcmtypes libbot)
 set(iris_dependencies eigen mosek)
 set(signalscope_dependencies director)
-set(drake_dependencies cmake eigen googletest lcm bot_core_lcmtypes libbot bullet octomap snopt gurobi swig_matlab swigmake yaml_cpp)
+set(drake_dependencies cmake eigen googletest lcm bot_core_lcmtypes libbot bullet octomap snopt gurobi swig_matlab swigmake yaml_cpp nlopt)
 
 # download information, in alphabetical order
 set(avl_GIT_REPOSITORY https://github.com/RobotLocomotion/avl.git)
@@ -122,16 +147,16 @@ set(bullet_GIT_TAG f7cfcf6a24977b57dc832593743c770548799e45)
 set(bullet_IS_PUBLIC TRUE)
 set(bullet_IS_CMAKE_POD TRUE)
 set(cmake_GIT_REPOSITORY https://github.com/RobotLocomotion/cmake.git)
-set(cmake_GIT_TAG c0522e484f4172cd60435720aaecdeabaef8385f)
+set(cmake_GIT_TAG abe1a22d0bb767423de4e3bd1123cc2deae1c82a)
 set(cmake_GIT_CLONE_DIR "${PROJECT_SOURCE_DIR}/drake/cmake")
 set(cmake_NO_BUILD TRUE)
 set(cmake_IS_PUBLIC TRUE)
 set(director_GIT_REPOSITORY https://github.com/RobotLocomotion/director.git)
-set(director_GIT_TAG 7782d87304a7819e8716237b1251451bb949c792)
+set(director_GIT_TAG cfc7702bf9278707bca82d0393bba8611513ea15)
 set(director_SOURCE_DIR ${PROJECT_SOURCE_DIR}/externals/director/distro/pods/drake-distro)
 set(director_IS_PUBLIC TRUE)
 set(drake_java_args -DJava_JAVA_EXECUTABLE=${Java_JAVA_EXECUTABLE} -DJava_JAVAC_EXECUTABLE=${Java_JAVAC_EXECUTABLE} -DJava_JAVAH_EXECUTABLE=${Java_JAVAH_EXECUTABLE} -DJava_VERSION_STRING=${Java_VERSION_STRING})
-set(drake_ADDITIONAL_BUILD_ARGS CMAKE_ARGS drake_java_args -DWITH_PYTHON_3=${WITH_PYTHON_3})
+set(drake_ADDITIONAL_CMAKE_CONFIGURE_ARGS ${drake_java_args} -DWITH_PYTHON_3=${WITH_PYTHON_3} -DDISABLE_MATLAB=${DISABLE_MATLAB})
 set(eigen_GIT_REPOSITORY https://github.com/RobotLocomotion/eigen-pod.git)
 set(eigen_GIT_TAG 20a633e8f0a285edf9dcc5a06cc9e80774920a7f)
 set(eigen_IS_CMAKE_POD TRUE)
@@ -140,7 +165,7 @@ set(googletest_GIT_REPOSITORY https://github.com/google/googletest.git)
 set(googletest_GIT_TAG ff07a5de0e81580547f1685e101194ed1a4fcd56)
 set(googletest_IS_CMAKE_POD TRUE)
 set(googletest_IS_PUBLIC TRUE)
-set(googletest_ADDITIONAL_CMAKE_CONFIGURE_ARGS -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_NAME_DIR=${CMAKE_INSTALL_PREFIX}/lib)
+set(googletest_ADDITIONAL_CMAKE_CONFIGURE_ARGS -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_NAME_DIR=${CMAKE_INSTALL_PREFIX}/lib -DGTEST_CREATE_SHARED_LIBRARY=1) # The "-DGTEST_CREATE_SHARED_LIBRARY=1" is needed to support parameterized Google tests on Windows.
 set(gtk_GIT_REPOSITORY https://github.com/RobotLocomotion/gtk-pod.git)
 set(gtk_GIT_TAG 4730a7d3274a35280f1c2c6337eb182935c87fc2)
 set(gtk_IS_CMAKE_POD TRUE)
@@ -155,12 +180,13 @@ set(iris_GIT_REPOSITORY https://github.com/rdeits/iris-distro.git)
 set(iris_GIT_TAG 1533f20cff57504a46773f01e1730f11931d0ea6)
 set(iris_ADDITIONAL_BUILD_ARGS PATCH_COMMAND make configure-cdd-only)
 set(iris_IS_PUBLIC TRUE)
-set(lcm_GIT_REPOSITORY https://github.com/jhoare/lcm-pod.git)
-set(lcm_GIT_TAG 62dcf194077a54efbfce4ac65adee3af6a7df3d0) # note: cmake branch
+set(lcm_GIT_REPOSITORY https://github.com/RobotLocomotion/lcm-pod.git)
+set(lcm_GIT_TAG a0181fc5e86677af9bfbc21622df3d074b612c95) # note: cmake branch
 set(lcm_IS_CMAKE_POD TRUE)
 set(lcm_IS_PUBLIC TRUE)
 set(libbot_GIT_REPOSITORY https://github.com/RobotLocomotion/libbot.git)
-set(libbot_GIT_TAG 94fe5290329646959e1c27896d529abba81e6d93)
+set(libbot_GIT_TAG cc8d228b50847c4c55e6963b8ee95c237287547f)
+set(libbot_IS_CMAKE_POD TRUE)
 set(libbot_IS_PUBLIC TRUE)
 set(bot_core_lcmtypes_GIT_REPOSITORY  https://github.com/jhoare/bot_core_lcmtypes)
 set(bot_core_lcmtypes_GIT_TAG fc70d061005f52000cf8af7658c34e86bc2bac68)
@@ -173,7 +199,7 @@ set(mosek_GIT_REPOSITORY https://github.com/rdeits/mosek-pod.git)
 set(mosek_GIT_TAG 1919b622df17b7584ac644406f360bd07cdf5fba)
 set(mosek_IS_PUBLIC TRUE)
 set(nlopt_GIT_REPOSITORY https://github.com/stevengj/nlopt.git)
-set(nlopt_GIT_TAG 355a597b43c80f616252cb370fa9f7e5c997418e)
+set(nlopt_GIT_TAG 78e165f9defbac487e915219b7a0866fd25e4c62)
 set(nlopt_BUILD_COMMAND ./autogen.sh --no-configure && ./configure --without-matlab --without-python --without-octave --without-guile --enable-maintainer-mode --enable-shared --prefix=${CMAKE_INSTALL_PREFIX} --includedir=${CMAKE_INSTALL_PREFIX}/include/nlopt && make install)
 set(nlopt_IS_PUBLIC TRUE)
 set(octomap_GIT_REPOSITORY https://github.com/RobotLocomotion/octomap-pod.git)
@@ -287,6 +313,22 @@ foreach(proj IN ITEMS
 	endif()
 endforeach()
 
+set(COMMON_CMAKE_ARGS
+	CMAKE_GENERATOR ${CMAKE_GENERATOR}
+	CMAKE_ARGS
+	-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+	-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+	-DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS}
+	-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+	-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+	-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+	-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+	-DCMAKE_EXE_LINKER_FLAGS=${CMAKE_EXE_LINKER_FLAGS}
+	-DCMAKE_MODULE_LINKER_FLAGS=${CMAKE_MODULE_LINKER_FLAGS}
+	-DCMAKE_SHARED_LINKER_FLAGS=${CMAKE_SHARED_LINKER_FLAGS}
+	-DCMAKE_STATIC_LINKER_FLAGS=${CMAKE_STATIC_LINKER_FLAGS}
+)
+
 set(EXTERNAL_SOURCE_DIRS)
 foreach (proj ${EXTERNAL_PROJECTS})
 	set(deps)
@@ -303,6 +345,13 @@ foreach (proj ${EXTERNAL_PROJECTS})
 		endif()
 		if (NOT ${proj}_SOURCE_DIR)
 			set(${proj}_SOURCE_DIR ${${proj}_GIT_CLONE_DIR})
+		endif()
+		if (NOT ${proj}_BINARY_DIR)
+			if(POD_BUILD)
+				set(${proj}_BINARY_DIR "${${proj}_SOURCE_DIR}/pod-build")
+			else()
+				set(${proj}_BINARY_DIR "${PROJECT_BINARY_DIR}/externals/${proj}")
+			endif()
 		endif()
 		set(EXTERNAL_SOURCE_DIRS ${EXTERNAL_SOURCE_DIRS} ${${proj}_SOURCE_DIR} "\n")
 
@@ -343,16 +392,14 @@ foreach (proj ${EXTERNAL_PROJECTS})
 					SOURCE_DIR ${${proj}_SOURCE_DIR}
 					DOWNLOAD_COMMAND ""
 					UPDATE_COMMAND ""
-					BINARY_DIR ${${proj}_SOURCE_DIR}/pod-build
-					CMAKE_GENERATOR ${CMAKE_GENERATOR}
-					CMAKE_ARGS
-					  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-					  -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-					  ${PODS_VERBOSE_MAKEFILE}
-					  ${${proj}_ADDITIONAL_CMAKE_CONFIGURE_ARGS}
+					BINARY_DIR ${${proj}_BINARY_DIR}
 					DEPENDS download-${proj} ${deps}
+					${COMMON_CMAKE_ARGS}
+					${PODS_VERBOSE_MAKEFILE}
+					${${proj}_ADDITIONAL_CMAKE_CONFIGURE_ARGS}
 					${${proj}_ADDITIONAL_BUILD_ARGS}
 					)
+			drake_forcebuild(${proj})
 		else() # not a CMake POD
 			if (NOT DEFINED ${proj}_BUILD_COMMAND)
 				if(${proj}_NO_BUILD)
@@ -378,6 +425,9 @@ foreach (proj ${EXTERNAL_PROJECTS})
 					DEPENDS download-${proj} ${deps}
 					${${proj}_ADDITIONAL_BUILD_ARGS}
 					)
+			if (${proj}_BUILD_COMMAND)
+				drake_forcebuild(${proj})
+			endif()
 			#    message(STATUS "${proj}_BUILD_COMMAND: ${${proj}_BUILD_COMMAND}")
 		endif()
 
@@ -387,29 +437,24 @@ foreach (proj ${EXTERNAL_PROJECTS})
 		if (CMAKE_VERBOSE_MAKEFILE)
 		    set(PODS_VERBOSE_MAKEFILE "-DCMAKE_VERBOSE_MAKEFILE=ON")
 		endif()
+		if(POD_BUILD)
+			set(drake_BINARY_DIR "${PROJECT_SOURCE_DIR}/drake/pod-build")
+		else()
+			set(drake_BINARY_DIR "${PROJECT_BINARY_DIR}/drake")
+		endif()
 		ExternalProject_Add(${proj}
 				SOURCE_DIR "${PROJECT_SOURCE_DIR}/drake"
 				DOWNLOAD_COMMAND ""
 				UPDATE_COMMAND ""
-				BINARY_DIR ${PROJECT_SOURCE_DIR}/drake/pod-build
-				CMAKE_GENERATOR ${CMAKE_GENERATOR}
-				CMAKE_ARGS
-				  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-				  -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-				  ${PODS_VERBOSE_MAKEFILE}
+				BINARY_DIR ${drake_BINARY_DIR}
 				DEPENDS ${deps}
+				${COMMON_CMAKE_ARGS}
+				${PODS_VERBOSE_MAKEFILE}
+				${${proj}_ADDITIONAL_CMAKE_CONFIGURE_ARGS}
 				${${proj}_ADDITIONAL_BUILD_ARGS}
-				#		BUILD_ALWAYS 1
 				)
+		drake_forcebuild(${proj})
 	endif(NOT ${proj} STREQUAL "drake")
-
-
-	# once we require cmake version >= 3.1, then we can zap this and just use the BUILD_ALWAYS flags above
-	ExternalProject_Add_Step(${proj} forceconfigure
-			COMMAND ${CMAKE_COMMAND} -E echo "Force configure of ${proj}"
-			DEPENDEES update
-			DEPENDERS configure
-			ALWAYS 1)
 
 endforeach()
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/drake_external_source_dirs.txt ${EXTERNAL_SOURCE_DIRS})

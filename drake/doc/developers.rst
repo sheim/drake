@@ -43,6 +43,49 @@ available in the superbuild.
 directory CMakeLists.txt using add_matlab_test().  ctest will consider
 the test failed if it times out or calls ``error``.
 
+Take at look at :doc:`unit_testing_instructions` for more detailed notes including **how to find and run specific tests**.
+
+.. _supported-configurations:
+
+Supported Configurations
+========================
+
+The following table shows the configurations and platforms that Drake
+officially supports. Supported configurations are tested in continuous
+integration. All other configurations are provided on a best-effort basis.
+
+On Ubuntu and OS X, only the "Unix Makefiles" CMake generator is supported.
+On Windows, only the "Visual Studio 14 2015" and "Visual Studio 14 2015 Win64"
+CMake generators are supported.
+
++-----------------------------------------+--------------------+-------------------+---------+
+| Operating System                        | Compiler           | Superbuild Deps   | Build   |
++=========================================+====================+===================+=========+
+| Ubuntu 14.04 LTS                        | GCC 4.9            | Default           | Debug   |
+|                                         |                    |                   +---------+
+|                                         |                    |                   | Release |
+|                                         |                    +-------------------+---------+
+|                                         |                    | Default + MATLAB  | Release |
+|                                         +--------------------+-------------------+---------+
+|                                         | Clang 3.7          | Default           | Debug   |
+|                                         |                    |                   +---------+
+|                                         |                    |                   | Release |
++-----------------------------------------+--------------------+-------------------+---------+
+| | Windows Server 2012 R2 or Windows 8.1 | MSVC 14 32-bit     | Default           | Debug   |
+| | Visual Studio 2015 (any edition)      |                    |                   +---------+
+|                                         |                    |                   | Release |
+|                                         +--------------------+-------------------+---------+
+|                                         | MSVC 14 64-bit     | Default           | Debug   |
+|                                         |                    |                   +---------+
+|                                         |                    |                   | Release |
++-----------------------------------------+--------------------+-------------------+---------+
+| OS X 10.10                              | Apple Clang 7.0    | Default           | Debug   |
+|                                         |                    |                   +---------+
+|                                         |                    |                   | Release |
++-----------------------------------------+--------------------+-------------------+---------+
+
+Official support for MATLAB on Windows and OS X is planned for 2016 Q2.
+
 Code Review
 ===========
 
@@ -56,6 +99,10 @@ are responsible for finding reviewers, and for providing them the information
 they need to review your change effectively. If a reviewer asks you for more
 information, that is a sign you should add more documentation to your PR.
 
+We use https://reviewable.io for code reviews. You can sign in for free with
+your GitHub identity. Before your first code review, please take a look at
+:doc:`reviewable`.
+
 **Feature Review.** After creating your pull request, assign it to someone
 else on your team for feature review. Choose the person most familiar
 with the context of your pull request. This reviewer is responsible for
@@ -67,17 +114,23 @@ in platform review.
 **Platform Review.** After your feature reviewer has signed off on your change,
 reassign it to a Drake owner for platform review. The owner will inspect for
 architectural compatibility, stability, performance, test coverage, and style.
-Once satisfied, the owner merges the PR.
 
-The following github users are Drake owners. If possible, seek platform review
+The following GitHub users are Drake owners. If possible, seek platform review
 from an owner who has previously reviewed related changes. Shared context will
 make the review faster.
 
 - @david-german-tri (Toyota Research Institute)
+- @ggould-tri (Toyota Research Institute)
 - @jwnimmer-tri (Toyota Research Institute)
 - @psiorx (MIT)
 - @sherm1 (Toyota Research Institute)
 - @RussTedrake (MIT / Toyota Research Institute)
+
+**Merge.** If you have write access to RobotLocomotion/drake, a green
+"Merge Pull Request" button will appear when your change is fully reviewed and
+passes CI. You may click it to merge your PR. If you do not have write access,
+or if you believe that status checks are failing for inconsequential reasons,
+ask your platform reviewer to perform the merge for you.
 
 
 Continuous Integration Notes
@@ -88,10 +141,28 @@ Continuous Integration Notes
     CDash <https://drake-cdash.csail.mit.edu/index.php?project=Drake>
     jenkins
 
-IDE Notes
-=========
-* `CLion <https://github.com/tkoolen/drake/wiki/CLion-setup-(experimental)>`_
-* `Eclipse <https://github.com/tkoolen/drake/wiki/Eclipse-setup-(experimental)>`_
+IDE and Text Editor Notes
+=========================
+
+.. toctree::
+    :maxdepth: 1
+
+    clion
+    `Eclipse <https://github.com/tkoolen/drake/wiki/Eclipse-setup-(experimental)>`_
+
+
+Sublime Text
+------------
+
+Recommended packages to install:
+
+1. https://packagecontrol.io/packages/SublimeLinter-cpplint
+
+To display the current file's full path in the title bar on OSX, open your user preferences by going to "Sublime Text," "Preferences," "Settings - User." Then add the following to your user preferences:
+
+    "show_full_path": true
+
+
 
 Operating System Notes
 ======================

@@ -1,11 +1,10 @@
-#ifndef DRAKE_SYSTEMS_PLANTS_RIGIDBODYSYSTEM_H_
-#define DRAKE_SYSTEMS_PLANTS_RIGIDBODYSYSTEM_H_
+#pragma once
 
-#include "drake/systems/System.h"
-#include "drake/solvers/Optimization.h"
-#include "drake/systems/plants/RigidBodyTree.h"
 #include "KinematicsCache.h"
 #include "drake/drakeRBSystem_export.h"
+#include "drake/solvers/Optimization.h"
+#include "drake/systems/System.h"
+#include "drake/systems/plants/RigidBodyTree.h"
 
 /** Rigid Body Dynamics Engine Class Design  (still needs to be implemented
  * below)
@@ -142,39 +141,46 @@ class DRAKERBSYSTEM_EXPORT RigidBodySystem {
   template <typename ScalarType>
   using OutputVector = Eigen::Matrix<ScalarType, Eigen::Dynamic, 1>;
 
-  RigidBodySystem(std::shared_ptr<RigidBodyTree> rigid_body_tree)
+  explicit RigidBodySystem(std::shared_ptr<RigidBodyTree> rigid_body_tree)
       : tree(rigid_body_tree),
         use_multi_contact(false),
         penetration_stiffness(150.0),
         penetration_damping(penetration_stiffness / 10.0),
         friction_coefficient(1.0),
-        direct_feedthrough(false){}
+        direct_feedthrough(false) {}
+
   RigidBodySystem()
       : use_multi_contact(false),
         penetration_stiffness(150.0),
         penetration_damping(penetration_stiffness / 10.0),
         friction_coefficient(1.0),
         direct_feedthrough(false) {
-    // tree =
-    // std::allocate_shared<RigidBodyTree>(Eigen::aligned_allocator<RigidBodyTree>());
+    // tree = std::allocate_shared<RigidBodyTree>(
+    //     Eigen::aligned_allocator<RigidBodyTree>());
     // // this crashed g++-4.7
     tree = std::shared_ptr<RigidBodyTree>(new RigidBodyTree());
   }
-  virtual ~RigidBodySystem(){}
+
+  virtual ~RigidBodySystem() {}
 
   void addRobotFromURDFString(
       const std::string& xml_string, const std::string& root_dir = ".",
       const DrakeJoint::FloatingBaseType floating_base_type =
           DrakeJoint::ROLLPITCHYAW);
-  void addRobotFromURDF(const std::string& urdf_filename,
-                        const DrakeJoint::FloatingBaseType floating_base_type =
-                            DrakeJoint::QUATERNION);
+  void addRobotFromURDF(
+      const std::string& urdf_filename,
+      const DrakeJoint::FloatingBaseType floating_base_type =
+          DrakeJoint::QUATERNION,
+      std::shared_ptr<RigidBodyFrame> weld_to_frame = nullptr);
   void addRobotFromSDF(const std::string& sdf_filename,
                        const DrakeJoint::FloatingBaseType floating_base_type =
-                           DrakeJoint::QUATERNION);
-  void addRobotFromFile(const std::string& filename,
-                        const DrakeJoint::FloatingBaseType floating_base_type =
-                            DrakeJoint::QUATERNION);
+                           DrakeJoint::QUATERNION,
+                       std::shared_ptr<RigidBodyFrame> weld_to_frame = nullptr);
+  void addRobotFromFile(
+      const std::string& filename,
+      const DrakeJoint::FloatingBaseType floating_base_type =
+          DrakeJoint::QUATERNION,
+      std::shared_ptr<RigidBodyFrame> weld_to_frame = nullptr);
 
   void addForceElement(std::shared_ptr<RigidBodyForceElement> f) {
     force_elements.push_back(f);
@@ -301,9 +307,9 @@ class DRAKERBSYSTEM_EXPORT RigidBodyPropellor : public RigidBodyForceElement {
  public:
   RigidBodyPropellor(RigidBodySystem& sys, tinyxml2::XMLElement* node,
                      const std::string& name);
-  virtual ~RigidBodyPropellor() {}
+  ~RigidBodyPropellor() override {}
 
-  virtual size_t getNumInputs() const override { return 1; }
+  size_t getNumInputs() const override { return 1; }
 
   // some quick thoughts:
   // might want to be nonlinear in the robot state, but linear in the prop
@@ -312,12 +318,12 @@ class DRAKERBSYSTEM_EXPORT RigidBodyPropellor : public RigidBodyForceElement {
   // and that I want a more general way to specify the input-output
   // relationships for miso functions
 
-  virtual Eigen::VectorXd output(
+  Eigen::VectorXd output(
       const double& t,
       /* todo: add force state here */ const Eigen::VectorXd& u,
       const KinematicsCache<double>& rigid_body_state) const override {
     Eigen::Matrix<double, 6, 1> force;
-    force << scale_factor_moment* u(0) * axis,
+    force << scale_factor_moment * u(0) * axis,
         scale_factor_thrust * u(0) * axis;
     return spatialForceInFrameToJointTorque(
         sys.getRigidBodyTree().get(), rigid_body_state, frame.get(), force);
@@ -344,9 +350,9 @@ class DRAKERBSYSTEM_EXPORT RigidBodySpringDamper
  public:
   RigidBodySpringDamper(RigidBodySystem& sys, tinyxml2::XMLElement* node,
                         const std::string& name);
-  virtual ~RigidBodySpringDamper() {}
+  ~RigidBodySpringDamper() override {}
 
-  virtual Eigen::VectorXd output(
+  Eigen::VectorXd output(
       const double& t,
       /* todo: add force state here */ const Eigen::VectorXd& u,
       const KinematicsCache<double>& rigid_body_state) const override {
@@ -396,7 +402,7 @@ class DRAKERBSYSTEM_EXPORT RigidBodySpringDamper
  * @brief Represents generalized vector-valued noise
  */
 template <typename ScalarType, int Dimension, typename Derived>
-class DRAKERBSYSTEM_EXPORT NoiseModel {
+class NoiseModel {
  public:
   virtual Eigen::Matrix<ScalarType, Dimension, 1> generateNoise(
       Eigen::MatrixBase<Derived> const& input) = 0;
@@ -407,13 +413,13 @@ class DRAKERBSYSTEM_EXPORT NoiseModel {
  * distribution is parameterized by a Gaussian
  */
 template <typename ScalarType, int Dimension, typename Derived>
-class DRAKERBSYSTEM_EXPORT AdditiveGaussianNoiseModel
+class AdditiveGaussianNoiseModel
     : public NoiseModel<ScalarType, Dimension, Derived> {
  public:
   AdditiveGaussianNoiseModel(double mean, double std_dev)
       : distribution(mean, std_dev), generator(rd()) {}
 
-  virtual Eigen::Matrix<ScalarType, Dimension, 1> generateNoise(
+  Eigen::Matrix<ScalarType, Dimension, 1> generateNoise(
       Eigen::MatrixBase<Derived> const& input) override {
     Eigen::Matrix<ScalarType, Dimension, 1> noise_vector;
     for (std::size_t index = 0; index < Dimension; index++) {
@@ -463,12 +469,12 @@ class DRAKERBSYSTEM_EXPORT RigidBodyDepthSensor : public RigidBodySensor {
                        std::size_t samples, double min_angle, double max_angle,
                        double range);
 
-  virtual ~RigidBodyDepthSensor() {}
+  ~RigidBodyDepthSensor() override {}
 
-  virtual size_t getNumOutputs() const override {
+  size_t getNumOutputs() const override {
     return num_pixel_rows * num_pixel_cols;
   }
-  virtual Eigen::VectorXd output(
+  Eigen::VectorXd output(
       const double& t, const KinematicsCache<double>& rigid_body_state,
       const RigidBodySystem::InputVector<double>& u) const override;
 
@@ -497,13 +503,13 @@ class DRAKERBSYSTEM_EXPORT RigidBodyAccelerometer : public RigidBodySensor {
  public:
   RigidBodyAccelerometer(RigidBodySystem const& sys, const std::string& name,
                          const std::shared_ptr<RigidBodyFrame> frame);
-  virtual ~RigidBodyAccelerometer() {}
+  ~RigidBodyAccelerometer() override {}
 
-  virtual size_t getNumOutputs() const override { return 3; }
-  virtual Eigen::VectorXd output(
+  size_t getNumOutputs() const override { return 3; }
+  Eigen::VectorXd output(
       const double& t, const KinematicsCache<double>& rigid_body_state,
       const RigidBodySystem::InputVector<double>& u) const override;
-  virtual bool isDirectFeedthrough() const override { return true; }
+  bool isDirectFeedthrough() const override { return true; }
   void setNoiseModel(
       std::shared_ptr<NoiseModel<double, 3, Eigen::Vector3d>> model) {
     noise_model = model;
@@ -526,10 +532,10 @@ class DRAKERBSYSTEM_EXPORT RigidBodyGyroscope : public RigidBodySensor {
  public:
   RigidBodyGyroscope(RigidBodySystem const& sys, const std::string& name,
                      const std::shared_ptr<RigidBodyFrame> frame);
-  virtual ~RigidBodyGyroscope() {}
+  ~RigidBodyGyroscope() override {}
 
-  virtual size_t getNumOutputs() const override { return 3; }
-  virtual Eigen::VectorXd output(
+  size_t getNumOutputs() const override { return 3; }
+  Eigen::VectorXd output(
       const double& t, const KinematicsCache<double>& rigid_body_state,
       const RigidBodySystem::InputVector<double>& u) const override;
 
@@ -553,10 +559,10 @@ class DRAKERBSYSTEM_EXPORT RigidBodyMagnetometer : public RigidBodySensor {
   RigidBodyMagnetometer(RigidBodySystem const& sys, const std::string& name,
                         const std::shared_ptr<RigidBodyFrame> frame,
                         double declination);
-  virtual ~RigidBodyMagnetometer() {}
+  ~RigidBodyMagnetometer() override {}
 
-  virtual size_t getNumOutputs() const override { return 3; }
-  virtual Eigen::VectorXd output(
+  size_t getNumOutputs() const override { return 3; }
+  Eigen::VectorXd output(
       const double& t, const KinematicsCache<double>& rigid_body_state,
       const RigidBodySystem::InputVector<double>& u) const override;
 
@@ -577,6 +583,3 @@ class DRAKERBSYSTEM_EXPORT RigidBodyMagnetometer : public RigidBodySensor {
 
 // end namespace Drake
 }
-
-#endif  // DRAKE_SYSTEMS_PLANTS_RIGIDBODYSYSTEM_H_
-

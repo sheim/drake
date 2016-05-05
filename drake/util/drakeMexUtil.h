@@ -1,13 +1,11 @@
-#ifndef DRAKE_UTIL_DRAKEMEXUTIL_H_
-#define DRAKE_UTIL_DRAKEMEXUTIL_H_
+#pragma once
 
-#include "mex.h"
+#include <mex.h>
+
 #include <vector>
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #include "drake/util/TrigPoly.h"
-#include "unsupported/Eigen/AutoDiff"
-
 /*
  * NOTE: include AutoDiff AFTER TrigPoly.h.
  * TrigPoly.h includes LLDT.h via Eigenvalues, PolynomialSolver, and our
@@ -118,15 +116,17 @@ Eigen::Map<const Eigen::Matrix<double, Rows, Cols>> matlabToEigenMap(
   using namespace Eigen;
   using namespace std;
 
-  Index rows, cols; // at runtime
+  Index rows, cols;  // at runtime
   if (mxIsEmpty(mex)) {
     // be lenient when it comes to dimensions in the empty input case
     if (Rows == Dynamic && Cols == Dynamic) {
-      // if both dimensions are dynamic, then follow the dimensions of the Matlab matrix
+      // if both dimensions are dynamic, then follow the dimensions of
+      // the Matlab matrix
       rows = mxGetM(mex);
       cols = mxGetN(mex);
     } else {
-      // if only one dimension is dynamic, use the known dimension at compile time and set the other dimension to zero
+      // if only one dimension is dynamic, use the known dimension at
+      // compile time and set the other dimension to zero
       rows = Rows == Dynamic ? 0 : Rows;
       cols = Cols == Dynamic ? 0 : Cols;
     }
@@ -348,5 +348,3 @@ mxArray* eigenToMatlabGeneral(const Eigen::MatrixBase<
     Eigen::Matrix<double, RowsAtCompileTime, ColsAtCompileTime>>& mat) {
   return eigenToMatlab(mat.const_cast_derived());
 }
-
-#endif  // DRAKE_UTIL_DRAKEMEXUTIL_H_

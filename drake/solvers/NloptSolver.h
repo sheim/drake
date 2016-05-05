@@ -1,5 +1,4 @@
-#ifndef DRAKE_SOLVERS_NLOPT_SOLVER_H_
-#define DRAKE_SOLVERS_NLOPT_SOLVER_H_
+#pragma once
 
 #include "drake/drakeOptimization_export.h"
 
@@ -12,9 +11,8 @@ class DRAKEOPTIMIZATION_EXPORT NloptSolver :
  public:
   // This solver is implemented in various pieces depending on if
   // NLOpt was available during compilation.
-  virtual bool available() const override;
-  virtual bool solve(OptimizationProblem& prog) const override;
+  bool available() const override;
+  drake::solvers::SolutionResult Solve(
+      OptimizationProblem& prog) const override;
 };
 }
-
-#endif

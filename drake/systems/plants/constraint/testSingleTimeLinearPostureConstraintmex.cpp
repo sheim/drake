@@ -1,4 +1,5 @@
-#include "mex.h"
+#include <mex.h>
+
 #include "drake/systems/plants/constraint/RigidBodyConstraint.h"
 #include "drake/util/drakeMexUtil.h"
 #include "drake/systems/plants/RigidBodyTree.h"
@@ -32,7 +33,8 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
   if (nrhs != 3 || nlhs != 9) {
     mexErrMsgIdAndTxt(
         "Drake:testSingleTimeLinearPostureConstraintmex:BadInputs",
-        "Usage [type, num_cnst, cnst_val, iAfun, jAvar, A, cnst_name, lb, ub] = "
+        "Usage "
+        "[type, num_cnst, cnst_val, iAfun, jAvar, A, cnst_name, lb, ub] = "
         "testSingleTimeLinearPostureConstraintmex(stlpc_ptr, q, t)");
   }
   SingleTimeLinearPostureConstraint* stlpc =

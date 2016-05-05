@@ -1,5 +1,4 @@
-#ifndef DRAKE_SYSTEMS_PLANTS_KINEMATICSCACHE_H_
-#define DRAKE_SYSTEMS_PLANTS_KINEMATICSCACHE_H_
+#pragma once
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -80,7 +79,8 @@ class KinematicsCache {
   bool inertias_cached;
 
  public:
-  KinematicsCache(const std::vector<std::shared_ptr<RigidBody> >& bodies)
+  explicit KinematicsCache(
+      const std::vector<std::shared_ptr<RigidBody> >& bodies)
       : num_positions(getNumPositions(bodies)),
         num_velocities(getNumVelocities(bodies)),
         q(Eigen::Matrix<Scalar, Eigen::Dynamic, 1>::Zero(num_positions)),
@@ -213,7 +213,8 @@ class KinematicsCache {
 
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> getX() const {
     if (hasV()) {
-      Eigen::Matrix<Scalar, Eigen::Dynamic, 1> x(getNumPositions() + getNumVelocities());
+      Eigen::Matrix<Scalar, Eigen::Dynamic, 1> x(getNumPositions() +
+                                                 getNumVelocities());
       x << q, v;
       return x;
     } else {
@@ -269,5 +270,3 @@ class KinematicsCache {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #endif
 };
-
-#endif  // DRAKE_SYSTEMS_PLANTS_KINEMATICSCACHE_H_

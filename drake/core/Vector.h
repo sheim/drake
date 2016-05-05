@@ -1,5 +1,4 @@
-#ifndef DRAKE_CORE_VECTOR_H_
-#define DRAKE_CORE_VECTOR_H_
+#pragma once
 
 #include <string>
 #include <vector>
@@ -147,27 +146,27 @@ template <typename ScalarType, template <typename> class Vector1,
           template <typename> class Vector2>
 class CombinedVector {
  public:
-  CombinedVector(){}  // allow use of default constructors for vec1 and vec2,
-                      // also
+  CombinedVector() {}  // allow use of default constructors for vec1 and vec2,
+                       // also
   CombinedVector(const Vector1<ScalarType> &first,
                  const Vector2<ScalarType> &second)
-      : vec1(first), vec2(second){}
+      : vec1(first), vec2(second) {}
 
   template <typename Derived>
-  CombinedVector(const Eigen::MatrixBase<Derived> &x)
+  explicit CombinedVector(const Eigen::MatrixBase<Derived> &x)
       : vec1(x.topRows(Vector1<ScalarType>::RowsAtCompileTime)),
         vec2(x.bottomRows(Vector2<ScalarType>::RowsAtCompileTime)) {
+    // TODO(RussTedrake): could handle cases where only one of the
+    // subvectors has dynamic size
     static_assert(RowsAtCompileTime != Eigen::Dynamic,
                   "Cannot determine sizes of subvectors because sizes are not "
-                  "known at compile time.");  // TODO: could handle cases where
-                                              // only one of the subvectors has
-                                              // dynamic size
+                  "known at compile time.");
   }
 
   template <typename Derived1, typename Derived2>
   CombinedVector(const Eigen::MatrixBase<Derived1> &x1,
                  const Eigen::MatrixBase<Derived2> &x2)
-      : vec1(x1), vec2(x2){}
+      : vec1(x1), vec2(x2) {}
 
   template <typename Derived>
   CombinedVector &operator=(const Eigen::MatrixBase<Derived> &x) {
@@ -334,6 +333,3 @@ struct CombinedVectorUtil<
 };
 
 };  // namespace Drake
-
-#endif  // DRAKE_CORE_VECTOR_H_
-

@@ -1,9 +1,9 @@
-#include "mex.h"
+#include <mex.h>
+
 #include <iostream>
 #include <octomap/octomap.h>
 #include <octomap/OcTree.h>
 
-//#include "drake/util/drakeUtil.h"
 #include "drake/util/drakeMexUtil.h"
 
 using namespace std;
@@ -22,7 +22,7 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
   //    leaf_nodes = octomapWrapper(octree, 2)  // getLeafNodes
   //
   //   Update tree:
-  //    octomapWrapper(octree, 11, pts, occupied)   // updateNote(pts, occupied).
+  //    octomapWrapper(octree, 11, pts, occupied)  // updateNote(pts, occupied).
   //    pts is 3-by-n, occupied is 1-by-n logical
   //
   //   General operations:

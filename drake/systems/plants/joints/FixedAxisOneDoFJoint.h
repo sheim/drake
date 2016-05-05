@@ -1,5 +1,4 @@
-#ifndef DRAKE_SYSTEMS_PLANTS_JOINTS_FIXEDAXISONEDOFJOINT_H_
-#define DRAKE_SYSTEMS_PLANTS_JOINTS_FIXEDAXISONEDOFJOINT_H_
+#pragma once
 
 #include "DrakeJointImpl.h"
 #include <cmath>
@@ -29,10 +28,10 @@ class FixedAxisOneDoFJoint : public DrakeJointImpl<Derived> {
         joint_axis(_joint_axis),
         damping(0.0),
         coulomb_friction(0.0),
-        coulomb_window(0.0){}
+        coulomb_window(0.0) {}
 
  public:
-  virtual ~FixedAxisOneDoFJoint(){}
+  virtual ~FixedAxisOneDoFJoint() {}
 
   using DrakeJoint::getNumPositions;
   using DrakeJoint::getNumVelocities;
@@ -175,5 +174,3 @@ class FixedAxisOneDoFJoint : public DrakeJointImpl<Derived> {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
-
-#endif  // DRAKE_SYSTEMS_PLANTS_JOINTS_FIXEDAXISONEDOFJOINT_H_

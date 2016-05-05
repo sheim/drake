@@ -30,13 +30,22 @@ macro(add_ik_cpp)
   add_test( NAME ${ARGV} WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" COMMAND ${ARGV})
 endmacro()
 
+macro(add_ik_gtest)
+  add_executable(${ARGV} ${ARGV}.cpp)
+  target_link_libraries(${ARGV} drakeRigidBodyConstraint drakeIK
+    ${GTEST_BOTH_LIBRARIES})
+  add_test( NAME ${ARGV} WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}" COMMAND ${ARGV})
+endmacro()
+
 if (gurobi_FOUND)
   add_ik_cpp(testApproximateIK)
 endif(gurobi_FOUND)
 
 if (snopt_c_FOUND)
-  add_ik_cpp(testIK)
-  add_ik_cpp(testIKMoreConstraints)
+  if (GTEST_FOUND)
+    add_ik_gtest(testIK)
+    add_ik_gtest(testIKMoreConstraints)
+  endif()
   add_ik_cpp(testIKpointwise)
   add_ik_cpp(testIKtraj)
 endif(snopt_c_FOUND)
@@ -88,6 +97,18 @@ if (LCM_FOUND)
     add_executable(compareRigidBodySystems compareRigidBodySystems.cpp)
     target_link_libraries(compareRigidBodySystems drakeRBSystem ${GTEST_BOTH_LIBRARIES})
     add_test(NAME compareAcrobotURDFtoSDF COMMAND compareRigidBodySystems Acrobot.urdf Acrobot.sdf WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/examples/Acrobot")
+
+    if (snopt_c_FOUND)
+      add_test(NAME comparePriusURDFtoSDF COMMAND compareRigidBodySystems prius.sdf prius.urdf 0 0 0.378326 WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/examples/Cars/models/prius")
+    endif (snopt_c_FOUND)
+
+    add_executable(load_model_test load_model_test.cc)
+    target_link_libraries(load_model_test drakeRBSystem ${GTEST_BOTH_LIBRARIES})
+    add_test(NAME load_model_test COMMAND load_model_test)
+
+    add_executable(rigid_body_tree_test rigid_body_tree_test.cc)
+    target_link_libraries(rigid_body_tree_test drakeRBSystem ${GTEST_BOTH_LIBRARIES})
+    add_test(NAME rigid_body_tree_test COMMAND rigid_body_tree_test)
   endif (GTEST_FOUND)
 endif (LCM_FOUND)
 
@@ -170,7 +191,7 @@ add_matlab_test(NAME systems/plants/test/testPositionConstraintsmex COMMAND test
 add_matlab_test(NAME systems/plants/test/testPositionControlGradients COMMAND testPositionControlGradients)
 add_matlab_test(NAME systems/plants/test/testRelativeTwist COMMAND testRelativeTwist)
 add_matlab_test(NAME systems/plants/test/testRigidBodyBluffBody COMMAND testRigidBodyBluffBody)
-add_matlab_test(NAME systems/plants/test/testRigidBodyInertialMeasurementUnit COMMAND testRigidBodyInertialMeasurementUnit)
+# add_matlab_test(NAME systems/plants/test/testRigidBodyInertialMeasurementUnit COMMAND testRigidBodyInertialMeasurementUnit)  # FIXME
 add_matlab_test(NAME systems/plants/test/testRigidBodyPassByValue COMMAND testRigidBodyPassByValue)
 add_matlab_test(NAME systems/plants/test/testRigidBodyPropellor COMMAND testRigidBodyPropellor)
 add_matlab_test(NAME systems/plants/test/testRigidBodyWingChangingParams COMMAND testRigidBodyWingChangingParams)
@@ -182,7 +203,7 @@ add_matlab_test(NAME systems/plants/test/testTerrainContactJacobianDotTimesV COM
 add_matlab_test(NAME systems/plants/test/testThrust COMMAND testThrust)
 add_matlab_test(NAME systems/plants/test/testTorsionalSpring COMMAND testTorsionalSpring)
 add_matlab_test(NAME systems/plants/test/testTorsionalSpringGradient COMMAND testTorsionalSpringGradient)
-add_matlab_test(NAME systems/plants/test/testURDFmex COMMAND testURDFmex)
+# add_matlab_test(NAME systems/plants/test/testURDFmex COMMAND testURDFmex)  # FIXME: see #2013
 add_matlab_test(NAME systems/plants/test/testWing COMMAND testWing)
 add_matlab_test(NAME systems/plants/test/testWingForceGradients COMMAND testWingForceGradients)
 add_matlab_test(NAME systems/plants/test/testdHomogTrans COMMAND testdHomogTrans)

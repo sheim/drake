@@ -1,10 +1,9 @@
-#ifndef DRAKE_UTIL_LCMSCOPE_H_
-#define DRAKE_UTIL_LCMSCOPE_H_
+#pragma once
 
-#include "lcmt_scope_data.h"
+#include "lcmtypes/drake/lcmt_scope_data.h"
 #include <string.h>
 #include <time.h>
-#include "lcm.h"
+#include <lcm/lcm.h>
 
 /*Utility to automate the use of our matlab scope infrastructure with C++
 programs.
@@ -22,10 +21,11 @@ class LCMScope {
 
  private:
   // http://www.mpp.mpg.de/~huber/util/timevaldiff.c
-  long timevaldiff(struct timeval* starttime, struct timeval* finishtime) {
-    long msec;
-    msec = (finishtime->tv_sec - starttime->tv_sec) * 1000;
-    msec += (finishtime->tv_usec - starttime->tv_usec) / 1000;
+  /// @return the (finishtime - starttime), in milliseconds
+  double timevaldiff(struct timeval* starttime, struct timeval* finishtime) {
+    double msec;
+    msec = (finishtime->tv_sec - starttime->tv_sec) * 1000.0;
+    msec += (finishtime->tv_usec - starttime->tv_usec) / 1000.0;
     return msec;
   }
 
@@ -80,5 +80,3 @@ class LCMScope {
   */
   void publish(void) { lcmt_scope_data_publish(lcm, lcm_chan, &data); }
 };
-
-#endif  // DRAKE_UTIL_LCMSCOPE_H_

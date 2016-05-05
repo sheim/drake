@@ -1,5 +1,4 @@
-#ifndef DRAKE_SYSTEMS_CONTROLLERS_QPCOMMON_H_
-#define DRAKE_SYSTEMS_CONTROLLERS_QPCOMMON_H_
+#pragma once
 
 #include "drake/systems/controllers/controlUtil.h"
 #include "drake/util/drakeUtil.h"
@@ -59,7 +58,7 @@ struct VRefIntegratorParams {
 };
 
 struct IntegratorParams {
-  IntegratorParams(const RigidBodyTree& robot)
+  explicit IntegratorParams(const RigidBodyTree& robot)
       : gains(Eigen::VectorXd::Zero(robot.num_positions)),
         clamps(Eigen::VectorXd::Zero(robot.num_positions)),
         eta(0.0) {}
@@ -89,7 +88,7 @@ struct Bounds {
 };
 
 struct JointSoftLimitParams {
-  JointSoftLimitParams(const RigidBodyTree& robot)
+  explicit JointSoftLimitParams(const RigidBodyTree& robot)
       : enabled(
             Eigen::Matrix<bool, Eigen::Dynamic, 1>::Zero(robot.num_positions)),
         disable_when_body_in_support(
@@ -123,7 +122,7 @@ struct JointSoftLimitParams {
 };
 
 struct WholeBodyParams {
-  WholeBodyParams(const RigidBodyTree& robot)
+  explicit WholeBodyParams(const RigidBodyTree& robot)
       : Kp(Eigen::VectorXd::Zero(robot.num_positions)),
         Kd(Eigen::VectorXd::Zero(robot.num_positions)),
         w_qdd(Eigen::VectorXd::Zero(robot.num_velocities)),
@@ -167,7 +166,7 @@ struct BodyMotionParams {
 };
 
 struct HardwareGains {
-  HardwareGains(const RigidBodyTree& robot)
+  explicit HardwareGains(const RigidBodyTree& robot)
       : k_f_p(Eigen::VectorXd::Zero(robot.actuators.size())),
         k_q_p(Eigen::VectorXd::Zero(robot.actuators.size())),
         k_q_i(Eigen::VectorXd::Zero(robot.actuators.size())),
@@ -198,7 +197,7 @@ struct HardwareGains {
 };
 
 struct HardwareParams {
-  HardwareParams(const RigidBodyTree& robot)
+  explicit HardwareParams(const RigidBodyTree& robot)
       : gains(robot),
         joint_is_force_controlled(Eigen::Matrix<bool, Eigen::Dynamic, 1>::Zero(
             robot.actuators.size())),
@@ -218,7 +217,7 @@ struct HardwareParams {
 };
 
 struct QPControllerParams {
-  QPControllerParams(const RigidBodyTree& robot)
+  explicit QPControllerParams(const RigidBodyTree& robot)
       : whole_body(robot),
         body_motion(robot.bodies.size()),
         vref_integrator(),
@@ -364,4 +363,3 @@ class KinematicModifications {
   }
 };
 
-#endif  // DRAKE_SYSTEMS_CONTROLLERS_QPCOMMON_H_

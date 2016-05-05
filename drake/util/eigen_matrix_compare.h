@@ -1,5 +1,4 @@
-#ifndef DRAKE_UTIL_EIGEN_MATRIX_COMPARE_H_
-#define DRAKE_UTIL_EIGEN_MATRIX_COMPARE_H_
+#pragma once
 
 #include <Eigen/Dense>
 #include <cmath>
@@ -25,8 +24,8 @@ enum MatrixCompareType { absolute, relative };
 template <typename DerivedA, typename DerivedB>
 bool CompareMatrices(const Eigen::MatrixBase<DerivedA>& m1,
                      const Eigen::MatrixBase<DerivedB>& m2,
-                     const double tolerance,
-                     const MatrixCompareType compare_type,
+                     double tolerance,
+                     MatrixCompareType compare_type,
                      std::string* explanation = nullptr) {
   bool result = true;
 
@@ -123,5 +122,3 @@ bool CompareMatrices(const Eigen::MatrixBase<DerivedA>& m1,
 
 }  // namespace util
 }  // namespace drake
-
-#endif  // DRAKE_UTIL_EIGEN_MATRIX_COMPARE_H_

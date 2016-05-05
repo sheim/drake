@@ -1,7 +1,7 @@
-#ifndef DRAKE_SYSTEMS_PLANTS_CONSTRAINT_CONSTRUCTPTRRIGIDBODYCONSTRAINT_H_
-#define DRAKE_SYSTEMS_PLANTS_CONSTRAINT_CONSTRUCTPTRRIGIDBODYCONSTRAINT_H_
+#pragma once
 
-#include "mex.h"
+#include <mex.h>
+
 #include <Eigen/Dense>
 
 #if defined(WIN32) || defined(WIN64)
@@ -26,5 +26,3 @@ CONSTRUCT_CONSTRAINT_DLLEXPORT double rigidBodyConstraintParseGazeConethreshold(
     const mxArray* pm);
 CONSTRUCT_CONSTRAINT_DLLEXPORT double rigidBodyConstraintParseGazeThreshold(
     const mxArray* pm);
-
-#endif  // DRAKE_SYSTEMS_PLANTS_CONSTRAINT_CONSTRUCTPTRRIGIDBODYCONSTRAINT_H_

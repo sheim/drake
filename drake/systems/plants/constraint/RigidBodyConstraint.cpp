@@ -45,7 +45,7 @@ RigidBodyConstraint::RigidBodyConstraint(const RigidBodyConstraint &rhs)
   this->tspan[1] = rhs.tspan[1];
 }
 
-RigidBodyConstraint::~RigidBodyConstraint(void){}
+RigidBodyConstraint::~RigidBodyConstraint(void) {}
 
 std::string RigidBodyConstraint::getTimeString(const double *t) const {
   std::string time_str;
@@ -966,7 +966,6 @@ EulerConstraint::EulerConstraint(RigidBodyTree *robot, const Vector3d &lb,
       std::cerr
           << "Drake:EulerConstraint:BadInputs:lb must be no larger than ub"
           << std::endl;
-      ;
     }
     if (std::isinf(my_lb(i)) && std::isinf(my_ub(i))) {
       null_constraint_rows[i] = true;
@@ -1656,7 +1655,7 @@ void WorldFixedPositionConstraint::eval_valid(const double *valid_t,
                                               const MatrixXd &valid_q,
                                               VectorXd &c,
                                               MatrixXd &dc_valid) const {
-  // TODO: don't use raw pointers
+  // TODO(tkoolen): don't use raw pointers
   int n_pts = static_cast<int>(this->pts.cols());
   int nq = this->robot->num_positions;
   MatrixXd *pos = new MatrixXd[num_valid_t];
@@ -1822,7 +1821,7 @@ void WorldFixedBodyPoseConstraint::eval_valid(const double *valid_t,
                                               const MatrixXd &valid_q,
                                               VectorXd &c,
                                               MatrixXd &dc_valid) const {
-  // TODO: don't use raw pointers
+  // TODO(tkoolen): don't use raw pointers
   int nq = this->robot->num_positions;
   Vector3d *pos = new Vector3d[num_valid_t];
   Vector4d *quat = new Vector4d[num_valid_t];

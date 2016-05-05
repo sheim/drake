@@ -1,5 +1,4 @@
-#ifndef DRAKE_EXAMPLES_PENDULUM_PENDULUM_H_
-#define DRAKE_EXAMPLES_PENDULUM_PENDULUM_H_
+#pragma once
 
 #include <iostream>
 #include <cmath>
@@ -13,10 +12,12 @@ class PendulumState {  // models the Drake::Vector concept
   typedef drake::lcmt_drake_signal LCMMessageType;
   static std::string channel() { return "PendulumState"; }
 
-  PendulumState(void) : theta(0), thetadot(0){}
+  PendulumState(void) : theta(0), thetadot(0) {}
+
   template <typename Derived>
-  PendulumState(const Eigen::MatrixBase<Derived>& x)
-      : theta(x(0)), thetadot(x(1)){}
+  PendulumState(  // NOLINT(runtime/explicit) per Drake::Vector.
+      const Eigen::MatrixBase<Derived>& x)
+      : theta(x(0)), thetadot(x(1)) {}
 
   template <typename Derived>
   PendulumState& operator=(const Eigen::MatrixBase<Derived>& x) {
@@ -54,10 +55,12 @@ class PendulumInput {
   typedef drake::lcmt_drake_signal LCMMessageType;
   static std::string channel() { return "PendulumInput"; }
 
-  PendulumInput(void) : tau(0){}
+  PendulumInput(void) : tau(0) {}
+
   template <typename Derived>
-  PendulumInput(const Eigen::MatrixBase<Derived>& x)
-      : tau(x(0)){}
+  PendulumInput(  // NOLINT(runtime/explicit) per Drake::Vector.
+      const Eigen::MatrixBase<Derived>& x)
+      : tau(x(0)) {}
 
   template <typename Derived>
   PendulumInput& operator=(const Eigen::MatrixBase<Derived>& x) {
@@ -99,7 +102,7 @@ class Pendulum {
         I(.25),  // m*l^2; % kg*m^2
         g(9.81)  // m/s^2
   {}
-  virtual ~Pendulum(void){}
+  virtual ~Pendulum(void) {}
 
   template <typename ScalarType>
   PendulumState<ScalarType> dynamics(const ScalarType& t,
@@ -135,8 +138,8 @@ class PendulumEnergyShapingController {
   template <typename ScalarType>
   using OutputVector = PendulumInput<ScalarType>;
 
-  PendulumEnergyShapingController(const Pendulum& pendulum)
-      : m(pendulum.m), l(pendulum.l), b(pendulum.b), g(pendulum.g){}
+  explicit PendulumEnergyShapingController(const Pendulum& pendulum)
+      : m(pendulum.m), l(pendulum.l), b(pendulum.b), g(pendulum.g) {}
 
   template <typename ScalarType>
   StateVector<ScalarType> dynamics(const ScalarType& t,
@@ -161,5 +164,3 @@ class PendulumEnergyShapingController {
 
   double m, l, b, g;  // pendulum parameters (initialized in the constructor)
 };
-
-#endif  // DRAKE_EXAMPLES_PENDULUM_PENDULUM_H_

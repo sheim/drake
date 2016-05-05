@@ -1,5 +1,4 @@
-#ifndef DRAKE_SYSTEMS_SIMULATION_H_
-#define DRAKE_SYSTEMS_SIMULATION_H_
+#pragma once
 
 #include <Eigen/Dense>
 #include <chrono>
@@ -104,7 +103,6 @@ template <typename System>
 void simulate(const System& sys, double ti, double tf,
               const typename System::template StateVector<double>& xi,
               const SimulationOptions& options) {
-
   TimePoint start = TimeClock::now();
   typename System::template StateVector<double> x(xi), x1est, xdot0, xdot1;
   typename System::template InputVector<double> u(
@@ -179,5 +177,3 @@ void simulate(const System& sys, double t0, double tf) {
 }
 
 }  // end namespace Drake
-
-#endif  // DRAKE_SYSTEMS_SIMULATION_H_

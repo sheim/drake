@@ -1,5 +1,4 @@
-#ifndef DRAKE_UTIL_DRAKEGRADIENTUTIL_H_
-#define DRAKE_UTIL_DRAKEGRADIENTUTIL_H_
+#pragma once
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -201,7 +200,7 @@ typename MatGradMult<DerivedDA, DerivedB>::type matGradMult(
   return ret;
 }
 
-// TODO: could save copies once
+// TODO(tkoolen): could save copies once
 // http://eigen.tuxfamily.org/bz/show_bug.cgi?id=329 is fixed
 template <typename Derived>
 Eigen::Matrix<typename Derived::Scalar, Eigen::Dynamic, Eigen::Dynamic>
@@ -431,5 +430,3 @@ void resizeDerivativesToMatchScalar(Eigen::MatrixBase<Derived>& mat,
       Derived, typename Derived::Scalar>::run(mat, scalar);
 }
 }
-
-#endif  // DRAKE_UTIL_DRAKEGRADIENTUTIL_H_

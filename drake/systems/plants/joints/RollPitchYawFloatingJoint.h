@@ -1,5 +1,4 @@
-#ifndef DRAKE_SYSTEMS_PLANTS_JOINTS_ROLLPITCHYAWFLOATINGJOINT_H_
-#define DRAKE_SYSTEMS_PLANTS_JOINTS_ROLLPITCHYAWFLOATINGJOINT_H_
+#pragma once
 
 #include "DrakeJointImpl.h"
 
@@ -14,9 +13,9 @@ class DRAKEJOINTS_EXPORT RollPitchYawFloatingJoint
  public:
   RollPitchYawFloatingJoint(const std::string &name,
                             const Eigen::Isometry3d &transform_to_parent_body)
-      : DrakeJointImpl(*this, name, transform_to_parent_body, 6, 6){}
+      : DrakeJointImpl(*this, name, transform_to_parent_body, 6, 6) {}
 
-  virtual ~RollPitchYawFloatingJoint(){}
+  virtual ~RollPitchYawFloatingJoint() {}
 
   template <typename DerivedQ>
   Eigen::Transform<typename DerivedQ::Scalar, 3, Eigen::Isometry>
@@ -251,14 +250,12 @@ class DRAKEJOINTS_EXPORT RollPitchYawFloatingJoint
         getNumVelocities(), 1);
   }
 
-  virtual bool isFloating() const override { return true; }
-  virtual Eigen::VectorXd zeroConfiguration() const override;
-  virtual Eigen::VectorXd randomConfiguration(
+  bool isFloating() const override { return true; }
+  Eigen::VectorXd zeroConfiguration() const override;
+  Eigen::VectorXd randomConfiguration(
       std::default_random_engine &generator) const override;
-  virtual std::string getPositionName(int index) const override;
+  std::string getPositionName(int index) const override;
 
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
-
-#endif  // DRAKE_SYSTEMS_PLANTS_JOINTS_ROLLPITCHYAWFLOATINGJOINT_H_

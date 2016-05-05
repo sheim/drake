@@ -1,5 +1,6 @@
-#include "mex.h"
-#include "matrix.h"
+#include <mex.h>
+#include <matrix.h>
+
 #include <cstdlib>
 #include <memory>
 #include <algorithm>
@@ -10,7 +11,6 @@
 namespace snopt {
 #include "snopt.hh"
 #include "snfilewrapper.hh"
-//#include "snoptProblem.hh"
 }
 
 using namespace std;
@@ -72,10 +72,11 @@ void mysnsetr(const char* strOpt, snopt::doublereal val, snopt::integer* iPrint,
 
 void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
   if (nrhs != 13 && nlhs != 5) {
-    mexErrMsgIdAndTxt("Drake:NonlinearProgramSnoptmex:InvalidInputs",
-                      "The usage is [x, F, info, xmul, Fmul] = "
-                      "NonlinearProgramSnoptmex(x, xlow, xupp, Flow, Fupp, userfun,"
-                      "ObjAdd, ObjRow, A, iAfun, jAvar, iGfun, jGvar, options)");
+    mexErrMsgIdAndTxt(
+        "Drake:NonlinearProgramSnoptmex:InvalidInputs",
+        "The usage is [x, F, info, xmul, Fmul] = "
+        "NonlinearProgramSnoptmex(x, xlow, xupp, Flow, Fupp, userfun,"
+        "ObjAdd, ObjRow, A, iAfun, jAvar, iGfun, jGvar, options)");
   }
 
   if (lenrw == 0) {  // then initialize (sninit needs some default allocation)
@@ -159,10 +160,11 @@ void mexFunction(int nlhs, mxArray* plhs[], int nrhs, const mxArray* prhs[]) {
     snopt::snopenappend_(&iPrint, print_file_name, &INFO_snopt,
                          print_file_name_len);
 
-    // mysnseti("Major print
-    // level", static_cast<snopt::integer>(11),&iPrint,&iSumm,&INFO_snopt, cw,&lencw, iw,&leniw, rw,&lenrw);
-    // mysnseti("Print
-    // file", iPrint,&iPrint,&iSumm,&INFO_snopt, cw,&lencw, iw,&leniw, rw,&lenrw);
+    // mysnseti("Major print level",
+    //   static_cast<snopt::integer>(11),&iPrint,&iSumm,&INFO_snopt,
+    //   cw,&lencw, iw,&leniw, rw,&lenrw);
+    // mysnseti("Print file", iPrint,&iPrint,&iSumm,&INFO_snopt,
+    //   cw,&lencw, iw,&leniw, rw,&lenrw);
   }
 
   snopt::integer minrw, miniw, mincw;

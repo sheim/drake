@@ -1,5 +1,4 @@
-#ifndef DRAKE_SOLVERS_SNOPT_SOLVER_H_
-#define DRAKE_SOLVERS_SNOPT_SOLVER_H_
+#pragma once
 
 #include "drake/drakeOptimization_export.h"
 
@@ -9,12 +8,11 @@ namespace Drake {
 
 class DRAKEOPTIMIZATION_EXPORT SnoptSolver :
     public MathematicalProgramSolverInterface  {
-  public:
-    // This solver is implemented in various pieces depending on if
-    // SNOPT was available during compilation.
-    virtual bool available() const override;
-    virtual bool solve(OptimizationProblem& prog) const override;
+ public:
+  // This solver is implemented in various pieces depending on if
+  // SNOPT was available during compilation.
+  bool available() const override;
+  drake::solvers::SolutionResult Solve(
+      OptimizationProblem& prog) const override;
 };
 }
-
-#endif

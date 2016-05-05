@@ -1,5 +1,4 @@
-#ifndef DRAKE_UTIL_STANDARDMEXCONVERSIONS_H_
-#define DRAKE_UTIL_STANDARDMEXCONVERSIONS_H_
+#pragma once
 
 //
 // Created by Twan Koolen on 10/10/15.
@@ -50,7 +49,7 @@ bool isConvertibleFromMex(
     Eigen::MatrixBase<Eigen::Map<
         const Eigen::Matrix<double, Rows, Cols, Options, MaxRows, MaxCols>>>*,
     std::ostream* log) NOEXCEPT {
-  // TODO: size checks?
+  // TODO(tkoolen): size checks?
   if (!mxIsNumeric(mex)) {
     if (log) *log << "Expected a numeric array";
     return false;
@@ -68,7 +67,7 @@ fromMexUnsafe(
 }
 
 // quick version for VectorXi.
-// TODO: generalize to arbitrary matrices of integers
+// TODO(tkoolen): generalize to arbitrary matrices of integers
 bool isConvertibleFromMex(const mxArray* source,
                           Eigen::MatrixBase<Eigen::Map<const Eigen::VectorXi>>*,
                           std::ostream* log) NOEXCEPT {
@@ -221,7 +220,7 @@ fromMexUnsafe(
 
     if (mxIsSparse(df)) {
       auto gradient_matrix = GradientTypeFixedMaxSize(
-          matlabToEigenSparse(df));  // TODO: inefficient
+          matlabToEigenSparse(df));  // TODO(tkoolen): inefficient
       gradientMatrixToAutoDiff(gradient_matrix, ret);
     } else {
       auto num_derivs = mxGetN(df);
@@ -308,5 +307,3 @@ int toMex(const std::tuple<Ts...>& source, mxArray* dest[], int nlhs) {
   return Drake::internal::TupleToMexHelper<sizeof...(Ts)>::run(source, dest,
                                                                nlhs);
 }
-
-#endif  // DRAKE_UTIL_STANDARDMEXCONVERSIONS_H_

@@ -1,5 +1,4 @@
-#ifndef DRAKE_EXAMPLES_ACROBOT_ACROBOT_H_
-#define DRAKE_EXAMPLES_ACROBOT_ACROBOT_H_
+#pragma once
 
 #include <iostream>
 #include <cmath>
@@ -13,10 +12,12 @@ class AcrobotState {  // models the Drake::Vector concept
   typedef drake::lcmt_drake_signal LCMMessageType;
   static std::string channel() { return "AcrobotState"; }
 
-  AcrobotState(void) : shoulder(0), elbow(0), shoulder_dot(0), elbow_dot(0){}
+  AcrobotState(void) : shoulder(0), elbow(0), shoulder_dot(0), elbow_dot(0) {}
+
   template <typename Derived>
-  AcrobotState(const Eigen::MatrixBase<Derived>& x)
-      : shoulder(x(0)), elbow(x(1)), shoulder_dot(x(2)), elbow_dot(x(3)){}
+  AcrobotState(  // NOLINT(runtime/explicit) per Drake::Vector.
+      const Eigen::MatrixBase<Derived>& x)
+      : shoulder(x(0)), elbow(x(1)), shoulder_dot(x(2)), elbow_dot(x(3)) {}
 
   template <typename Derived>
   AcrobotState& operator=(const Eigen::MatrixBase<Derived>& x) {
@@ -59,10 +60,12 @@ class AcrobotInput {
   typedef drake::lcmt_drake_signal LCMMessageType;
   static std::string channel() { return "AcrobotInput"; }
 
-  AcrobotInput(void) : tau(0){}
+  AcrobotInput(void) : tau(0) {}
+
   template <typename Derived>
-  AcrobotInput(const Eigen::MatrixBase<Derived>& x)
-      : tau(x(0)){}
+  AcrobotInput(  // NOLINT(runtime/explicit) per Drake::Vector.
+      const Eigen::MatrixBase<Derived>& x)
+      : tau(x(0)) {}
 
   template <typename Derived>
   AcrobotInput& operator=(const Eigen::MatrixBase<Derived>& x) {
@@ -109,7 +112,7 @@ class Acrobot {
         b2(0.1),  // kg m^2 /s
         g(9.81)   // m/s^2
   {}
-  virtual ~Acrobot(void){}
+  virtual ~Acrobot(void) {}
 
   template <typename ScalarType>
   void manipulatorDynamics(const AcrobotState<ScalarType>& x,
@@ -177,5 +180,3 @@ class Acrobot {
   double m1, m2, l1, l2, lc1, lc2, Ic1, Ic2, b1, b2,
       g;  // parameters (initialized in the constructor)
 };
-
-#endif  // DRAKE_EXAMPLES_ACROBOT_ACROBOT_H_

@@ -1,5 +1,4 @@
-#ifndef DRAKE_SYSTEMS_PLANTS_BOTVISUALIZER_H_
-#define DRAKE_SYSTEMS_PLANTS_BOTVISUALIZER_H_
+#pragma once
 
 #include <lcm/lcm-cpp.hpp>
 #include <Eigen/Dense>
@@ -104,10 +103,13 @@ class BotVisualizer {
             gdata.num_float_data = 1;
             auto m = dynamic_cast<const DrakeShapes::Mesh &>(geometry);
             gdata.float_data.push_back(static_cast<float>(m.scale));
-            gdata.string_data = m.resolved_filename;  // looks like this could
-                                                      // be empty, but it is
-                                                      // what's used in the get
-                                                      // mesh points...
+
+            if (m.filename.find("package://") == 0) {
+              gdata.string_data = m.filename;
+            } else {
+              gdata.string_data = m.resolved_filename;
+            }
+
             break;
           }
           case DrakeShapes::CAPSULE: {
@@ -181,5 +183,3 @@ class BotVisualizer {
 };
 
 }  // end namespace Drake
-
-#endif  // DRAKE_SYSTEMS_PLANTS_BOTVISUALIZER_H_

@@ -1,18 +1,19 @@
 
-#include <string>
 #include <fstream>
 #include <sstream>
-#include "xmlUtil.h"
+#include <string>
+
+#include "drake/Path.h"
 #include "drake/thirdParty/tinydir/tinydir.h"
 #include "drake/util/drakeGeometryUtil.h"
-#include "drake/Path.h"
+#include "xmlUtil.h"
 
 using namespace std;
 using namespace Eigen;
 using namespace tinyxml2;
 
 // only writes values if they exist
-bool parseVectorAttribute(tinyxml2::XMLElement* node,
+bool parseVectorAttribute(const tinyxml2::XMLElement* node,
                           const char* attribute_name, Eigen::Vector3d& val) {
   const char* attr = node->Attribute(attribute_name);
   if (attr) {
@@ -23,7 +24,7 @@ bool parseVectorAttribute(tinyxml2::XMLElement* node,
   return false;
 }
 
-bool parseVectorAttribute(tinyxml2::XMLElement* node,
+bool parseVectorAttribute(const tinyxml2::XMLElement* node,
                           const char* attribute_name, Eigen::Vector4d& val) {
   const char* attr = node->Attribute(attribute_name);
   if (attr) {
@@ -85,6 +86,7 @@ void poseValueToTransform(tinyxml2::XMLElement* node, const PoseMap& pose_map,
     std::stringstream s(strval);
     s >> xyz(0) >> xyz(1) >> xyz(2) >> rpy(0) >> rpy(1) >> rpy(2);
   }
+
   T.matrix() << rpy2rotmat(rpy), xyz, 0, 0, 0, 1;
 
   const char* attr = node->Attribute("frame");
@@ -114,14 +116,13 @@ void searchDirectory(map<string, string>& package_map, string path) {
   const char pathsep = ':';
 #endif
 
-
   string token, t;
   istringstream iss(path);
   const std::string target_filename("package.xml");
 
   while (getline(iss, token, pathsep)) {
     tinydir_dir dir;
-    if (tinydir_open(&dir, token.c_str()) < 0 ) {
+    if (tinydir_open(&dir, token.c_str()) < 0) {
       std::cerr << "Unable to open directory: " << token << std::endl;
       continue;
     }
@@ -204,7 +205,25 @@ string resolveFilename(const string& filename,
       return string();
     }
   } else {
-    mesh_filename_s = spruce::path(root_dir);
+    std::string normalized_root_dir = spruce::path(root_dir).getStr();
+
+    // if root_dir is a relative path then convert it to absolute
+#ifdef _WIN32
+    bool dirIsRelative = !(normalized_root_dir.size() >= 2
+                           && std::isalpha(normalized_root_dir[0])
+                           && normalized_root_dir[1] == ':');
+#else
+    bool dirIsRelative = !(normalized_root_dir.size() >= 1
+                           && normalized_root_dir[0] == '/');
+#endif
+    if (dirIsRelative) {
+      mesh_filename_s = spruce::path();
+      mesh_filename_s.setAsCurrent();
+      mesh_filename_s.append(normalized_root_dir);
+    } else {
+      mesh_filename_s = spruce::path(normalized_root_dir);
+    }
+
     mesh_filename_s.append(filename);
   }
   if (!mesh_filename_s.exists()) {
