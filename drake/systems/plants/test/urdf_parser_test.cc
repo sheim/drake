@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include "drake/systems/plants/parser_urdf.h"
 #include "drake/systems/plants/RigidBodyTree.h"
 
 namespace drake {
@@ -49,10 +50,12 @@ GTEST_TEST(URDFParserTest, ParseJointProperties) {
 
   // Instantiates a rigid body tree using the above-defined URDF string.
   std::unique_ptr<RigidBodyTree> rigid_body_tree(new RigidBodyTree());
-  rigid_body_tree->addRobotFromURDFString(urdf_string);
+  drake::parsers::urdf::AddModelInstanceFromUrdfString(urdf_string,
+    rigid_body_tree.get());
 
   // Obtains the child link of food_joint.
-  RigidBody* foo_joint_link = rigid_body_tree->findJoint("foo_joint");
+  RigidBody* foo_joint_link =
+      rigid_body_tree->FindChildBodyOfJoint("foo_joint");
   EXPECT_TRUE(foo_joint_link != nullptr);
 
   // Obtains a reference to foo_joint and verifies its parameters are correct.
@@ -67,9 +70,9 @@ GTEST_TEST(URDFParserTest, ParseJointProperties) {
   const RigidBodyActuator& foo_actuator =
       rigid_body_tree->GetActuator(actuator_name);
 
-  EXPECT_EQ(foo_actuator.effort_limit_min, -123);
-  EXPECT_EQ(foo_actuator.effort_limit_max, 123);
-  EXPECT_EQ(foo_actuator.reduction, 0.5);
+  EXPECT_EQ(foo_actuator.effort_limit_min_, -123);
+  EXPECT_EQ(foo_actuator.effort_limit_max_, 123);
+  EXPECT_EQ(foo_actuator.reduction_, 0.5);
 }
 
 }  // namespace

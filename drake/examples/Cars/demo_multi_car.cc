@@ -3,30 +3,30 @@
 #include <memory>
 #include <sstream>
 
-#include "drake/Path.h"
+#include "drake/common/drake_path.h"
 #include "drake/systems/cascade_system.h"
 #include "drake/systems/LCMSystem.h"
 #include "drake/systems/LinearSystem.h"
 #include "drake/systems/n_ary_state.h"
 #include "drake/systems/n_ary_system.h"
 #include "drake/systems/plants/BotVisualizer.h"
+#include "drake/systems/plants/parser_urdf.h"
 #include "drake/systems/plants/RigidBodyTree.h"
 
 #include "drake/examples/Cars/car_simulation.h"
-#include "drake/examples/Cars/gen/euler_floating_joint_state.h"
 #include "drake/examples/Cars/trajectory_car.h"
 
-using Drake::AffineSystem;
-using Drake::BotVisualizer;
-using Drake::NullVector;
-using Drake::cascade;
+using drake::AffineSystem;
+using drake::BotVisualizer;
+using drake::NullVector;
+using drake::cascade;
 
 namespace drake {
 namespace examples {
 namespace cars {
 namespace {
 
-int do_main(int argc, const char* argv[]) {
+int DoMain(int argc, const char* argv[]) {
   int num_cars = 100;
   if (argc == 2) {
     num_cars = atoi(argv[1]);
@@ -38,9 +38,9 @@ int do_main(int argc, const char* argv[]) {
 
   auto car_vis_adapter = CreateSimpleCarVisualizationAdapter();
 
-  const std::string kSedanUrdf = Drake::getDrakePath() +
+  const std::string kSedanUrdf = drake::GetDrakePath() +
       "/examples/Cars/models/sedan.urdf";
-  const std::string kBreadtruckUrdf = Drake::getDrakePath() +
+  const std::string kBreadtruckUrdf = drake::GetDrakePath() +
       "/examples/Cars/models/breadtruck.urdf";
 
   // RigidBodyTree for visualization.
@@ -65,10 +65,9 @@ int do_main(int argc, const char* argv[]) {
   // Add all of the desired cars.
   for (int i = 0; i < num_cars; ++i) {
     // Add the visualization entity.
-    world_tree->addRobotFromURDF((i % 5) ? kSedanUrdf : kBreadtruckUrdf,
-                                 DrakeJoint::ROLLPITCHYAW,
-                                 nullptr /*weld_to_frame*/);
-    world_tree->bodies.back()->robotnum = i + 1;
+    drake::parsers::urdf::AddModelInstanceFromUrdfFile(
+        (i % 5) ? kSedanUrdf : kBreadtruckUrdf, DrakeJoint::ROLLPITCHYAW,
+        nullptr /* weld_to_frame */, world_tree.get());
 
     // Add the trajectory car, and its visualization adapter.
     cars_system->AddSystem(CreateTrajectoryCarSystem(i));
@@ -78,16 +77,16 @@ int do_main(int argc, const char* argv[]) {
   // Add LCM support, for visualization.
   std::shared_ptr<lcm::LCM> lcm = std::make_shared<lcm::LCM>();
   auto visualizer =
-      std::make_shared<Drake::BotVisualizer<
+      std::make_shared<drake::BotVisualizer<
         decltype(cars_vis_adapter)::element_type::OutputVector>>(
             lcm, world_tree);
 
   // Compose the system together from the parts.
-  auto the_system = Drake::cascade(Drake::cascade(
+  auto the_system = drake::cascade(drake::cascade(
       cars_system, cars_vis_adapter), visualizer);
 
   decltype(the_system)::element_type::StateVector<double> initial_state;
-  Drake::SimulationOptions options;
+  drake::SimulationOptions options;
   options.realtime_factor = 0.0;
   const double t0 = 0.0;
   const double tf = std::numeric_limits<double>::infinity();
@@ -102,5 +101,5 @@ int do_main(int argc, const char* argv[]) {
 }  // namespace drake
 
 int main(int argc, const char* argv[]) {
-  return drake::examples::cars::do_main(argc, argv);
+  return drake::examples::cars::DoMain(argc, argv);
 }

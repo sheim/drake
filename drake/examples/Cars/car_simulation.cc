@@ -3,12 +3,13 @@
 #include <cstdlib>
 
 #include "drake/examples/Cars/curve2.h"
-#include "drake/examples/Cars/gen/euler_floating_joint_state.h"
-#include "drake/examples/Cars/gen/simple_car_state.h"
 #include "drake/examples/Cars/trajectory_car.h"
+#include "drake/systems/plants/parser_model_instance_id_table.h"
 
-using Drake::AffineSystem;
-using Drake::NullVector;
+using drake::AffineSystem;
+using drake::NullVector;
+using drake::parsers::ModelInstanceIdTable;
+
 using Eigen::Matrix;
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
@@ -17,43 +18,95 @@ namespace drake {
 namespace examples {
 namespace cars {
 
-std::shared_ptr<RigidBodySystem> CreateRigidBodySystem(int argc,
-                                                       const char* argv[],
-                                                       double* duration) {
+const char kDurationFlag[] = "--duration";
+
+void PrintUsageInstructions(const std::string& executable_name) {
+  std::cout
+    << "Usage: " << executable_name
+    << " vehicle_model_file [world_model_files] ["
+    << kDurationFlag << " duration_in_seconds]"
+    << std::endl
+    << std::endl
+    << "Where:" << std::endl
+    << "  - vehicle_model_file is the path to the URDF or SDF file defining"
+    << std::endl
+    << "    the vehicle model(s) and are thus attached to the world via"
+    << std::endl
+    << "    DrakeJoint::QUATERNION joints."
+    << std::endl
+    << std::endl
+    << "  - world_model_files is a space-separated list of paths to URDF or"
+    << std::endl
+    << "    SDF files. This list can be of length zero or more. The models"
+    << std::endl
+    << "    within these files are connected to the world via DrakeJoint::FIXED"
+    << std::endl
+    << "    joints."
+    << std::endl
+    << std::endl
+    << "  - duration_in_seconds is the number of seconds (floating point) to"
+    << std::endl
+    << "    run the simulation. This value is in simulation time."
+    << std::endl;
+}
+
+std::shared_ptr<RigidBodySystem> CreateRigidBodySystem(
+    int argc, const char* argv[], double* duration,
+    ModelInstanceIdTable* model_instance_id_table) {
   if (argc < 2) {
-    std::cerr << "Usage: " << argv[0] << " vehicle_model [world sdf files ...]"
-              << " --duration [duration in seconds]" << std::endl;
+    PrintUsageInstructions(argv[0]);
     exit(EXIT_FAILURE);
   }
 
-  // Instantiates a rigid body system and adds the robot to it.
+  // Instantiates a rigid body system.
   auto rigid_body_sys = std::allocate_shared<RigidBodySystem>(
       Eigen::aligned_allocator<RigidBodySystem>());
-  rigid_body_sys->addRobotFromFile(argv[1], DrakeJoint::QUATERNION);
 
-  // Initializes duration to be infinity.
-  *duration = std::numeric_limits<double>::infinity();
+  // Adds a model instance.
+  ModelInstanceIdTable vehicle_instance_id_table =
+      rigid_body_sys->AddModelInstanceFromFile(argv[1],
+          DrakeJoint::QUATERNION);
 
-  // Adds the environment to the rigid body tree.
-  const auto& tree = rigid_body_sys->getRigidBodyTree();
-  for (int i = 2; i < argc; i++) {
-    if (std::string(argv[i]) == "--duration") {
-      if (++i == argc) {
+  // Verifies that only one vehicle was added to the world.
+  if (vehicle_instance_id_table.size() != 1) {
+    throw std::runtime_error(
+        "More than one vehicle model was added to the world.");
+  }
+
+  // Saves the vehicle model into the model_instance_id_table output parameter.
+  *model_instance_id_table = vehicle_instance_id_table;
+
+  if (duration != nullptr) {
+    // Initializes duration to be infinity.
+    *duration = std::numeric_limits<double>::infinity();
+  }
+
+  // Adds the environment.
+  for (int ii = 2; ii < argc; ++ii) {
+    if (std::string(argv[ii]) == "--duration") {
+      if (++ii == argc) {
         throw std::runtime_error(
             "ERROR: Command line option \"--duration\" is not followed by a "
             "value!");
       }
-      *duration = atof(argv[i]);
+      if (duration != nullptr)
+        *duration = atof(argv[ii]);
     } else {
-      rigid_body_sys->addRobotFromFile(argv[i], DrakeJoint::FIXED);
+      ModelInstanceIdTable world_instance_id_table =
+          rigid_body_sys->AddModelInstanceFromFile(argv[ii], DrakeJoint::FIXED);
+      drake::parsers::AddModelInstancesToTable(world_instance_id_table,
+          model_instance_id_table);
     }
   }
 
-  // If no environment is specified, the following code adds a flat terrain.
+  // Adds a flat terrain if no environment is specified.
   if (argc < 3) {
-    AddFlatTerrain(tree);
+    const std::shared_ptr<RigidBodyTree>& tree =
+        rigid_body_sys->getRigidBodyTree();
+    AddFlatTerrainToWorld(tree);
   }
 
+  // Sets various simulation parameters.
   SetRigidBodySystemParameters(rigid_body_sys.get());
 
   return rigid_body_sys;
@@ -68,11 +121,12 @@ void SetRigidBodySystemParameters(RigidBodySystem* rigid_body_sys) {
 
 double ParseDuration(int argc, const char* argv[]) {
   for (int ii = 1; ii < argc; ++ii) {
-    if (std::string(argv[ii]) == "--duration") {
+    if (std::string(argv[ii]) == kDurationFlag) {
       if (++ii == argc) {
+        PrintUsageInstructions(argv[0]);
         throw std::runtime_error(
-            "ERROR: Command line option \"--duration\" is not followed by a "
-            "value!");
+            "ERROR: Command line option \"" + std::string(kDurationFlag) +
+            "\" is not followed by a value!");
       }
       return atof(argv[ii]);
     }
@@ -80,7 +134,8 @@ double ParseDuration(int argc, const char* argv[]) {
   return std::numeric_limits<double>::infinity();
 }
 
-void AddFlatTerrain(const std::shared_ptr<RigidBodyTree>& rigid_body_tree,
+void AddFlatTerrainToWorld(
+    const std::shared_ptr<RigidBodyTree>& rigid_body_tree,
     double box_size, double box_depth) {
   DrakeShapes::Box geom(Eigen::Vector3d(box_size, box_size, box_depth));
   Eigen::Isometry3d T_element_to_link = Eigen::Isometry3d::Identity();
@@ -90,16 +145,16 @@ void AddFlatTerrain(const std::shared_ptr<RigidBodyTree>& rigid_body_tree,
   Eigen::Vector4d color;
   color << 0.9297, 0.7930, 0.6758,
       1;  // was hex2dec({'ee','cb','ad'})'/256 in matlab
-  world.addVisualElement(
+  world.AddVisualElement(
       DrakeShapes::VisualElement(geom, T_element_to_link, color));
   rigid_body_tree->addCollisionElement(
-      RigidBody::CollisionElement(geom, T_element_to_link, &world), world,
+      RigidBodyCollisionElement(geom, T_element_to_link, &world), world,
       "terrain");
   rigid_body_tree->updateStaticCollisionElements();
 }
 
 std::shared_ptr<CascadeSystem<
-    Gain<DrivingCommand, PDControlSystem<RigidBodySystem>::InputVector>,
+    Gain<DrivingCommand1, PDControlSystem<RigidBodySystem>::InputVector>,
     PDControlSystem<RigidBodySystem>>>
 CreateVehicleSystem(std::shared_ptr<RigidBodySystem> rigid_body_sys) {
   const auto& tree = rigid_body_sys->getRigidBodyTree();
@@ -117,41 +172,42 @@ CreateVehicleSystem(std::shared_ptr<RigidBodySystem> rigid_body_sys) {
       tree->number_of_positions() + tree->number_of_velocities(), 3);
   map_driving_cmd_to_x_d.setZero();
 
-  for (int actuator_idx = 0; actuator_idx < tree->actuators.size();
+  for (int actuator_idx = 0;
+       actuator_idx < static_cast<int>(tree->actuators.size());
        actuator_idx++) {
-    const std::string& actuator_name = tree->actuators[actuator_idx].name;
+    const std::string& actuator_name = tree->actuators[actuator_idx].name_;
 
     if (actuator_name == "steering") {
       // Obtains the rigid body to which the actuator is attached.
-      const auto& rigid_body = tree->actuators[actuator_idx].body;
+      const auto& rigid_body = tree->actuators[actuator_idx].body_;
 
       // Sets the steering actuator's Kp gain.
-      Kp(actuator_idx, rigid_body->position_num_start) = kpSteering;
+      Kp(actuator_idx, rigid_body->get_position_start_index()) = kpSteering;
 
       // Sets the steering actuator's Kd gain.
-      Kd(actuator_idx, rigid_body->velocity_num_start) = kdSteering;
+      Kd(actuator_idx, rigid_body->get_velocity_start_index()) = kdSteering;
 
       // Saves the mapping between the driving command and the steering command.
-      map_driving_cmd_to_x_d(rigid_body->position_num_start,
+      map_driving_cmd_to_x_d(rigid_body->get_position_start_index(),
                              DrivingCommandIndices::kSteeringAngle) =
           1;  // steering command
 
     } else if (actuator_name == "right_wheel_joint" ||
                actuator_name == "left_wheel_joint") {
       // Obtains the rigid body to which the actuator is attached.
-      const auto& rigid_body = tree->actuators[actuator_idx].body;
+      const auto& rigid_body = tree->actuators[actuator_idx].body_;
 
       // Sets the throttle Kd gain.
-      Kd(actuator_idx, rigid_body->velocity_num_start) = kThrottle;
+      Kd(actuator_idx, rigid_body->get_velocity_start_index()) = kThrottle;
 
       // Saves the mapping between the driving command and the throttle command.
       map_driving_cmd_to_x_d(
-          tree->number_of_positions() + rigid_body->velocity_num_start,
+          tree->number_of_positions() + rigid_body->get_velocity_start_index(),
           DrivingCommandIndices::kThrottle) = 20;
 
       // Saves the mapping between the driving command and the braking command.
       map_driving_cmd_to_x_d(
-          tree->number_of_positions() + rigid_body->velocity_num_start,
+          tree->number_of_positions() + rigid_body->get_velocity_start_index(),
           DrivingCommandIndices::kBrake) = -20;
     }
   }
@@ -162,9 +218,10 @@ CreateVehicleSystem(std::shared_ptr<RigidBodySystem> rigid_body_sys) {
 
   auto vehicle_sys = cascade(
       std::allocate_shared<
-          Gain<DrivingCommand, PDControlSystem<RigidBodySystem>::InputVector>>(
-          Eigen::aligned_allocator<Gain<
-              DrivingCommand, PDControlSystem<RigidBodySystem>::InputVector>>(),
+          Gain<DrivingCommand1, PDControlSystem<RigidBodySystem>::InputVector>>(
+          Eigen::aligned_allocator<
+              Gain<DrivingCommand1,
+                   PDControlSystem<RigidBodySystem>::InputVector>>(),
           map_driving_cmd_to_x_d),
       vehicle_with_pd);
 
@@ -234,22 +291,22 @@ std::shared_ptr<TrajectoryCar> CreateTrajectoryCarSystem(int index) {
   return std::make_shared<TrajectoryCar>(curve, kSpeed, start_time);
 }
 
-std::shared_ptr<AffineSystem<
-  NullVector, SimpleCarState, EulerFloatingJointState>>
+std::shared_ptr<
+    AffineSystem<NullVector, SimpleCarState1, EulerFloatingJointState1>>
 CreateSimpleCarVisualizationAdapter() {
-  const int insize = SimpleCarState<double>().size();
-  const int outsize = EulerFloatingJointState<double>().size();
+  const int insize = SimpleCarState1<double>().size();
+  const int outsize = EulerFloatingJointState1<double>().size();
   MatrixXd D;
   D.setZero(outsize, insize);
   D(EulerFloatingJointStateIndices::kX, SimpleCarStateIndices::kX) = 1;
   D(EulerFloatingJointStateIndices::kY, SimpleCarStateIndices::kY) = 1;
   D(EulerFloatingJointStateIndices::kYaw, SimpleCarStateIndices::kHeading) = 1;
-  EulerFloatingJointState<double> y0;
+  EulerFloatingJointState1<double> y0;
   return std::make_shared<
     AffineSystem<
         NullVector,
-        SimpleCarState,
-        EulerFloatingJointState>>(
+        SimpleCarState1,
+        EulerFloatingJointState1>>(
             MatrixXd::Zero(0, 0),
             MatrixXd::Zero(0, insize),
             VectorXd::Zero(0),
@@ -257,9 +314,8 @@ CreateSimpleCarVisualizationAdapter() {
             D, toEigen(y0));
 }
 
-
 SimulationOptions GetCarSimulationDefaultOptions() {
-  SimulationOptions result = Drake::default_simulation_options;
+  SimulationOptions result;
   result.initial_step_size = 5e-3;
   result.timeout_seconds = std::numeric_limits<double>::infinity();
   return result;

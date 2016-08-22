@@ -1,10 +1,13 @@
 #pragma once
 
+#include <cstdint>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
+#include "drake/common/drake_assert.h"
 #include "drake/systems/framework/state_subvector.h"
 #include "drake/systems/framework/state_vector.h"
 #include "drake/systems/framework/vector_interface.h"
@@ -13,8 +16,8 @@ namespace drake {
 namespace systems {
 
 /// The ContinuousState is a container for all the State variables that are
-/// unique to continuous Systems, i.e. Systems that satisfy
-/// ContinuousSystemInterface and have defined dynamics at all times.
+/// unique to continuous Systems, i.e. Systems that have defined dynamics at
+/// all times.
 ///
 /// @tparam T A mathematical type compatible with Eigen's Scalar.
 template <typename T>
@@ -33,19 +36,21 @@ class ContinuousState {
   /// Constructs a ContinuousState that exposes second-order structure.
   /// The contents of @p state must be laid out as follows:
   ///
-  /// @verbatim
+  /// <pre>
   /// (index 0)|--q--|--v--|--z--|(index state.size() - 1)
   ///
   /// Where q is generalized position
   ///       v is generalized velocity
   ///       z is other continuous state
-  /// @endverbatim
+  /// </pre>
   ///
+  ///
+  /// @param state The source of continuous state information.
   /// @param num_q The number of position variables.
   /// @param num_v The number of velocity variables.
-  /// @param num_z  The number of other variables.
-  ContinuousState(std::unique_ptr<StateVector<T>> state, size_t num_q,
-                  size_t num_v, size_t num_z) {
+  /// @param num_z The number of other variables.
+  ContinuousState(std::unique_ptr<StateVector<T>> state, int num_q,
+                  int num_v, int num_z) {
     state_ = std::move(state);
     if (state_->size() != num_q + num_v + num_z) {
       throw std::out_of_range(
@@ -66,8 +71,27 @@ class ContinuousState {
         new StateSubvector<T>(state_.get(), num_q + num_v, num_z));
   }
 
-  // TODO(david-german-tri): Add a suitable constructor for the continuous
-  // state of a Diagram, using StateSupervectors.
+  /// Constructs a continuous state that exposes second-order structure, with
+  /// no particular constraints on the layout.
+  ///
+  /// @param state The entire continuous state.
+  /// @param q The subset of state that is generalized position.
+  /// @param v The subset of state that is generalized velocity.
+  /// @param z The subset of state that is neither position nor velocity.
+  ContinuousState(std::unique_ptr<StateVector<T>> state,
+                  std::unique_ptr<StateVector<T>> q,
+                  std::unique_ptr<StateVector<T>> v,
+                  std::unique_ptr<StateVector<T>> z)
+      : state_(std::move(state)),
+        generalized_position_(std::move(q)),
+        generalized_velocity_(std::move(v)),
+        misc_continuous_state_(std::move(z)) {
+    const int num_q = generalized_position_->size();
+    const int num_v = generalized_velocity_->size();
+    const int n = num_q + num_v + misc_continuous_state_->size();
+    DRAKE_ASSERT(state_->size() == n);
+    DRAKE_ASSERT(num_v <= num_q);
+  }
 
   /// Returns the entire state vector.
   const StateVector<T>& get_state() const { return *state_; }
@@ -109,23 +133,23 @@ class ContinuousState {
   }
 
  private:
-  /// The entire state vector.  May or may not own the underlying data.
+  // The entire state vector.  May or may not own the underlying data.
   std::unique_ptr<StateVector<T>> state_;
 
-  /// Generalized coordinates representing System configuration, conventionally
-  /// denoted `q`. These are second-order state variables.
-  /// This is a subset of state_ and does not own the underlying data.
+  // Generalized coordinates representing System configuration, conventionally
+  // denoted `q`. These are second-order state variables.
+  // This is a subset of state_ and does not own the underlying data.
   std::unique_ptr<StateVector<T>> generalized_position_;
 
-  /// Generalized speeds representing System velocity. Conventionally denoted
-  /// `v`. These are first-order state variables that the System can linearly
-  /// map to time derivatives `qdot` of `q` above.
-  /// This is a subset of state_ and does not own the underlying data.
+  // Generalized speeds representing System velocity. Conventionally denoted
+  // `v`. These are first-order state variables that the System can linearly
+  // map to time derivatives `qdot` of `q` above.
+  // This is a subset of state_ and does not own the underlying data.
   std::unique_ptr<StateVector<T>> generalized_velocity_;
 
-  /// Additional continuous, first-order state variables not representing
-  /// multibody system motion.  Conventionally denoted `z`.
-  /// This is a subset of state_ and does not own the underlying data.
+  // Additional continuous, first-order state variables not representing
+  // multibody system motion.  Conventionally denoted `z`.
+  // This is a subset of state_ and does not own the underlying data.
   std::unique_ptr<StateVector<T>> misc_continuous_state_;
 };
 

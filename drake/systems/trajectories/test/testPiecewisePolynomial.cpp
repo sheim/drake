@@ -1,11 +1,13 @@
-#include <Eigen/Core>
 #include <iostream>
 #include <random>
 #include <vector>
-#include "drake/systems/trajectories/PiecewisePolynomial.h"
-#include "drake/util/eigen_matrix_compare.h"
-#include "drake/util/testUtil.h"
+
+#include <Eigen/Core>
 #include "gtest/gtest.h"
+
+#include "drake/common/eigen_matrix_compare.h"
+#include "drake/systems/trajectories/PiecewisePolynomial.h"
+#include "drake/util/testUtil.h"
 
 using Eigen::Matrix;
 using std::default_random_engine;
@@ -15,13 +17,8 @@ using std::runtime_error;
 using std::normal_distribution;
 using std::uniform_int_distribution;
 
-using drake::util::MatrixCompareType;
-
 namespace drake {
 namespace {
-
-default_random_engine generator;
-uniform_real_distribution<double> uniform;
 
 template <typename CoefficientType>
 void testIntegralAndDerivative() {
@@ -33,6 +30,7 @@ void testIntegralAndDerivative() {
   typedef PiecewisePolynomial<CoefficientType> PiecewisePolynomialType;
   typedef typename PiecewisePolynomialType::CoefficientMatrix CoefficientMatrix;
 
+  default_random_engine generator;
   vector<double> segment_times =
       PiecewiseFunction::randomSegmentTimes(num_segments, generator);
   PiecewisePolynomialType piecewise =
@@ -55,8 +53,8 @@ void testIntegralAndDerivative() {
   // check continuity at knot points
   for (int i = 0; i < piecewise.getNumberOfSegments() - 1; ++i) {
     valuecheck(integral.getPolynomial(i)
-               .evaluateUnivariate(integral.getDuration(i)),
-               integral.getPolynomial(i + 1).evaluateUnivariate(0.0));
+               .EvaluateUnivariate(integral.getDuration(i)),
+               integral.getPolynomial(i + 1).EvaluateUnivariate(0.0));
   }
 }
 

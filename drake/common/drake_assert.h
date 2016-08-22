@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cassert>
 #include <type_traits>
 
 #include "drake/drakeCommon_export.h"
@@ -41,6 +40,8 @@
 /// Like @p DRAKE_ABORT_UNLESS(false), except that the meaningless "false"
 /// condition test is not included in the message.
 #define DRAKE_ABORT()
+/// Like @p DRAKE_ABORT(), with the addition of literal message text.
+#define DRAKE_ABORT_MSG(message)
 #else  //  DRAKE_DOXYGEN_CXX
 
 // Users should NOT set these; only this header should set them.
@@ -79,6 +80,9 @@ void Abort(const char* condition, const char* func, const char* file, int line);
       ::drake::detail::Abort(#condition, __func__, __FILE__, __LINE__); \
     }                                                                   \
   } while (0)
+
+#define DRAKE_ABORT_MSG(msg)                                        \
+  ::drake::detail::Abort(msg, __func__, __FILE__, __LINE__)
 
 #ifdef DRAKE_ASSERT_IS_ARMED
 // Assertions are enabled.

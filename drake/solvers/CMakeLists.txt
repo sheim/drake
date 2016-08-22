@@ -1,15 +1,8 @@
-# TODO: still build something useful if Gurobi does not exist
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # TODO(#2372) These are warnings that we can't handle yet.
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare")
-endif()
-
 pods_find_pkg_config(gurobi)
 
 if(gurobi_FOUND)
 
-  add_library_with_exports(LIB_NAME drakeQP SOURCE_FILES QP.cpp)
+  add_library_with_exports(LIB_NAME drakeQP SOURCE_FILES qp.cc)
   pods_use_pkg_config_packages(drakeQP gurobi)
 
   if(MATLAB_FOUND)
@@ -20,12 +13,11 @@ if(gurobi_FOUND)
   endif()
 
   pods_install_libraries(drakeQP)
-  drake_install_headers(fastQP.h gurobiQP.h)
+  drake_install_headers(fast_qp.h gurobi_qp.h)
   pods_install_pkg_config_file(drake-qp
     LIBS -ldrakeQP
     REQUIRES gurobi
     VERSION 0.0.1)
-
 endif()
 
 if(MATLAB_FOUND)
@@ -34,29 +26,52 @@ if(MATLAB_FOUND)
 endif()
 
 set(optimization_files)
-list(APPEND optimization_files MathematicalProgram.cpp MobyLCP.cpp system_identification.cpp)
+list(APPEND optimization_files
+  mathematical_program.cc moby_lcp_solver.cc
+  system_identification.cpp linear_system_solver.cc
+  equality_constrained_qp_solver.cc)
 pods_find_pkg_config(ipopt)
 if (ipopt_FOUND)
-  list(APPEND optimization_files IpoptSolver.cpp)
+ list(APPEND optimization_files ipopt_solver.cc)
 else()
-  list(APPEND optimization_files NoIpopt.cpp)
+  list(APPEND optimization_files no_ipopt.cc)
 endif(ipopt_FOUND)
 pods_find_pkg_config(nlopt)
 if(nlopt_FOUND)
-  list(APPEND optimization_files NloptSolver.cpp)
+  list(APPEND optimization_files nlopt_solver.cc)
 else()
-  list(APPEND optimization_files NoNlopt.cpp)
+  list(APPEND optimization_files no_nlopt.cc)
 endif()
 pods_find_pkg_config(snopt_c)
 if(snopt_c_FOUND)
-  list(APPEND optimization_files SnoptSolver.cpp)
+  list(APPEND optimization_files snopt_solver.cc)
 else()
-  list(APPEND optimization_files NoSnopt.cpp)
+  list(APPEND optimization_files no_snopt.cc)
+endif()
+pods_find_pkg_config(mosek)
+if(mosek_FOUND)
+  list(APPEND optimization_files mosek_solver.cc mosek_wrapper.cc)
+else()
+  list(APPEND optimization_files no_mosek.cc)
+endif()
+if(gurobi_FOUND)
+  list(APPEND optimization_files gurobi_solver.cc)
+else()
+  list(APPEND optimization_files no_gurobi.cc)
 endif()
 
+
 add_library_with_exports(LIB_NAME drakeOptimization SOURCE_FILES ${optimization_files})
-target_link_libraries(drakeOptimization drakePolynomial)
-drake_install_headers(MathematicalProgram.h Optimization.h system_identification.h)
+target_link_libraries(drakeOptimization drakeCommon)
+drake_install_headers(
+  constraint.h
+  Function.h
+  mathematical_program.h
+  optimization.h
+  decision_variable.h
+  solution_result.h
+  system_identification.h
+  )
 pods_install_libraries(drakeOptimization)
 pods_install_pkg_config_file(drake-optimization
   LIBS -ldrakeOptimization
@@ -88,14 +103,26 @@ endif()
 if(snopt_c_FOUND)
   pods_use_pkg_config_packages(drakeOptimization snopt_c)
 endif()
+if(gurobi_FOUND)
+  pods_use_pkg_config_packages(drakeOptimization gurobi)
+endif()
 
 if(snopt_c_FOUND AND MATLAB_FOUND)
   add_mex(NonlinearProgramSnoptmex NonlinearProgramSnoptmex.cpp)
   pods_use_pkg_config_packages(NonlinearProgramSnoptmex snopt_c)
+
+  # These warnings are not worth fixing.
+  set_target_properties(
+    NonlinearProgramSnoptmex
+    PROPERTIES COMPILE_FLAGS ${CXX_FLAGS_NO_ERROR_SHADOW})
+endif()
+
+if(mosek_FOUND)
+  pods_use_pkg_config_packages(drakeOptimization mosek)
 endif()
 
 add_subdirectory(qpSpline)
 add_subdirectory(test)
 add_subdirectory(+drakeFunction)
 add_subdirectory(BMI)
-add_subdirectory(trajectoryOptimization/test)
+add_subdirectory(trajectoryOptimization)

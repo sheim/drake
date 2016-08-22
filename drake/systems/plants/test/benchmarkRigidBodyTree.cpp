@@ -1,15 +1,19 @@
 #include <cmath>
+
+#include "drake/common/eigen_types.h"
+#include "drake/math/autodiff.h"
+#include "drake/math/autodiff_gradient.h"
 #include "drake/systems/plants/RigidBodyTree.h"
 #include "drake/util/testUtil.h"
 
 using namespace std;
 using namespace Eigen;
 
+using drake::math::autoDiffToGradientMatrix;
+using drake::math::autoDiffToValueMatrix;
+
 typedef DrakeJoint::AutoDiffFixedMaxSize AutoDiffFixedMaxSize;
 typedef AutoDiffScalar<VectorXd> AutoDiffDynamicSize;
-
-default_random_engine generator;
-uniform_real_distribution<> uniform(0, 1);
 
 template <int Rows, int Cols>
 void printMatrix(const MatrixBase<Matrix<double, Rows, Cols>>& mat) {
@@ -27,6 +31,9 @@ template <typename Scalar>
 void scenario1(const RigidBodyTree& model, KinematicsCache<Scalar>& cache,
                const vector<Matrix<Scalar, Dynamic, 1>>& qs,
                const map<int, Matrix3Xd>& body_fixed_points) {
+  default_random_engine generator;
+  uniform_real_distribution<> uniform(0, 1);
+
   for (const auto& q : qs) {
     cache.initialize(q);
     model.doKinematics(cache, false);
@@ -48,9 +55,11 @@ void scenario2(
     const RigidBodyTree& model, KinematicsCache<Scalar>& cache,
     const vector<pair<Matrix<Scalar, Dynamic, 1>, Matrix<Scalar, Dynamic, 1>>>&
         states) {
+  default_random_engine generator;
+  uniform_real_distribution<> uniform(0, 1);
+
   const eigen_aligned_unordered_map<RigidBody const*,
-                                    Matrix<Scalar, TWIST_SIZE, 1>>
-      f_ext;
+                                    drake::TwistVector<Scalar>> f_ext;
   for (const auto& state : states) {
     cache.initialize(state.first, state.second);
     model.doKinematics(cache, true);
@@ -140,11 +149,9 @@ void testScenario2(const RigidBodyTree& model) {
 
   vector<pair<VectorXd, VectorXd>> states_double;
   vector<pair<Matrix<AutoDiffFixedMaxSize, Dynamic, 1>,
-              Matrix<AutoDiffFixedMaxSize, Dynamic, 1>>>
-      states_autodiff_fixed;
+              Matrix<AutoDiffFixedMaxSize, Dynamic, 1>>> states_autodiff_fixed;
   vector<pair<Matrix<AutoDiffDynamicSize, Dynamic, 1>,
-              Matrix<AutoDiffDynamicSize, Dynamic, 1>>>
-      states_autodiff_dynamic;
+              Matrix<AutoDiffDynamicSize, Dynamic, 1>>> states_autodiff_dynamic;
   default_random_engine generator;
 
   for (int i = 0; i < ntests; i++) {

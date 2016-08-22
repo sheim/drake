@@ -4,13 +4,16 @@
 
 #include <Eigen/Core>
 
-#include "drake/core/Gradient.h"
-#include "drake/solvers/Optimization.h"
+#include "drake/common/eigen_autodiff_types.h"
+#include "drake/math/autodiff.h"
+#include "drake/math/autodiff_gradient.h"
+#include "drake/math/gradient.h"
+#include "drake/solvers/optimization.h"
 #include "drake/systems/plants/constraint/RigidBodyConstraint.h"
 #include "drake/systems/plants/KinematicsCache.h"
 #include "drake/systems/plants/RigidBodyTree.h"
 
-namespace Drake {
+namespace drake {
 namespace systems {
 namespace plants {
 
@@ -52,27 +55,30 @@ class SingleTimeKinematicConstraintWrapper :
       : Constraint(rigid_body_constraint->getNumConstraint(nullptr)),
         rigid_body_constraint_(rigid_body_constraint),
         kin_helper_(kin_helper) {
-    rigid_body_constraint->bounds(nullptr, lower_bound_, upper_bound_);
+    Eigen::VectorXd lower_bound;
+    Eigen::VectorXd upper_bound;
+    rigid_body_constraint->bounds(nullptr, lower_bound, upper_bound);
+    set_bounds(lower_bound, upper_bound);
   }
   ~SingleTimeKinematicConstraintWrapper() override {}
 
-  void eval(const Eigen::Ref<const Eigen::VectorXd>& q,
-                    Eigen::VectorXd& y) const override {
+  void Eval(const Eigen::Ref<const Eigen::VectorXd>& q,
+            Eigen::VectorXd& y) const override {
     auto& kinsol = kin_helper_->UpdateKinematics(
         q, rigid_body_constraint_->getRobotPointer());
     Eigen::MatrixXd dy;
     rigid_body_constraint_->eval(nullptr, kinsol, y, dy);
   }
-  void eval(const Eigen::Ref<const TaylorVecXd>& tq,
-                    TaylorVecXd& ty) const override {
-    Eigen::VectorXd q = autoDiffToValueMatrix(tq);
+  void Eval(const Eigen::Ref<const TaylorVecXd>& tq,
+            TaylorVecXd& ty) const override {
+    Eigen::VectorXd q = drake::math::autoDiffToValueMatrix(tq);
     auto& kinsol = kin_helper_->UpdateKinematics(
         q, rigid_body_constraint_->getRobotPointer());
     Eigen::VectorXd y;
     Eigen::MatrixXd dy;
     rigid_body_constraint_->eval(nullptr, kinsol, y, dy);
-    initializeAutoDiffGivenGradientMatrix(
-        y, (dy * autoDiffToGradientMatrix(tq)).eval(), ty);
+    math::initializeAutoDiffGivenGradientMatrix(
+        y, (dy * drake::math::autoDiffToGradientMatrix(tq)).eval(), ty);
   }
 
  private:
@@ -94,11 +100,14 @@ class QuasiStaticConstraintWrapper :
       : Constraint(rigid_body_constraint->getNumConstraint(nullptr) - 1),
         rigid_body_constraint_(rigid_body_constraint),
         kin_helper_(kin_helper) {
-    rigid_body_constraint->bounds(nullptr, lower_bound_, upper_bound_);
+    Eigen::VectorXd lower_bound;
+    Eigen::VectorXd upper_bound;
+    rigid_body_constraint->bounds(nullptr, lower_bound, upper_bound);
+    set_bounds(lower_bound, upper_bound);
   }
   virtual ~QuasiStaticConstraintWrapper() {}
 
-  void eval(const Eigen::Ref<const Eigen::VectorXd>& q,
+  void Eval(const Eigen::Ref<const Eigen::VectorXd>& q,
             Eigen::VectorXd& y) const override {
     auto& kinsol = kin_helper_->UpdateKinematics(
         q.head(
@@ -108,9 +117,9 @@ class QuasiStaticConstraintWrapper :
     Eigen::MatrixXd dy;
     rigid_body_constraint_->eval(nullptr, kinsol, weights.data(), y, dy);
   }
-  void eval(const Eigen::Ref<const TaylorVecXd>& tq,
+  void Eval(const Eigen::Ref<const TaylorVecXd>& tq,
             TaylorVecXd& ty) const override {
-    Eigen::VectorXd q = autoDiffToValueMatrix(tq);
+    Eigen::VectorXd q = drake::math::autoDiffToValueMatrix(tq);
     auto& kinsol = kin_helper_->UpdateKinematics(
         q.head(
             rigid_body_constraint_->getRobotPointer()->number_of_positions()),
@@ -121,8 +130,8 @@ class QuasiStaticConstraintWrapper :
     auto weights = q.tail(rigid_body_constraint_->getNumWeights());
     rigid_body_constraint_->eval(nullptr, kinsol, weights.data(), y, dy);
     y.conservativeResize(num_constraints());
-    initializeAutoDiffGivenGradientMatrix(
-        y, (dy * autoDiffToGradientMatrix(tq)).eval(), ty);
+    drake::math::initializeAutoDiffGivenGradientMatrix(
+        y, (dy * drake::math::autoDiffToGradientMatrix(tq)).eval(), ty);
   }
 
  private:

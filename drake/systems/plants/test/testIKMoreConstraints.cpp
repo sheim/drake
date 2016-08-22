@@ -1,44 +1,54 @@
 #include <cstdlib>
-#include <iostream>
 #include <numeric>  // for iota
 
 #include <Eigen/Dense>
 
-#include "drake/systems/plants/constraint/RigidBodyConstraint.h"
+#include "gtest/gtest.h"
+
+#include "drake/common/drake_path.h"
+#include "drake/common/eigen_matrix_compare.h"
 #include "drake/systems/plants/IKoptions.h"
 #include "drake/systems/plants/RigidBodyIK.h"
 #include "drake/systems/plants/RigidBodyTree.h"
-#include "drake/util/eigen_matrix_compare.h"
-#include "gtest/gtest.h"
+#include "drake/systems/plants/constraint/RigidBodyConstraint.h"
 
-using namespace std;
-using namespace Eigen;
-using drake::util::CompareMatrices;
-using drake::util::MatrixCompareType;
+using Eigen::Vector2d;
+using Eigen::Vector3d;
+using Eigen::VectorXd;
 
-// Find the joint position indices corresponding to 'name'
-vector<int> getJointPositionVectorIndices(const RigidBodyTree& model,
-                                          const std::string& name) {
-  RigidBody* joint_parent_body = model.findJoint(name);
-  int num_positions = joint_parent_body->getJoint().getNumPositions();
-  vector<int> ret(static_cast<size_t>(num_positions));
+namespace drake {
+namespace {
 
-  // fill with sequentially increasing values, starting at
-  // joint_parent_body->position_num_start:
-  iota(ret.begin(), ret.end(), joint_parent_body->position_num_start);
+/* Finds and returns the indices within the state vector of @p tree that contain
+ * the position states of a joint named @p name. The model instance ID is
+ * ignored in this search (joints belonging to all model instances are
+ * searched).
+ */
+std::vector<int> GetJointPositionVectorIndices(const RigidBodyTree& tree,
+                                               const std::string& name) {
+  RigidBody* joint_child_body = tree.FindChildBodyOfJoint(name);
+  int num_positions = joint_child_body->getJoint().getNumPositions();
+  std::vector<int> ret(static_cast<size_t>(num_positions));
+
+  // Since the joint position states are located in a contiguous region of the
+  // the rigid body tree's state vector, fill the return vector with
+  // sequentially increasing indices starting at
+  // `joint_child_body->get_position_start_index()`.
+  iota(ret.begin(), ret.end(), joint_child_body->get_position_start_index());
   return ret;
 }
 
 void findJointAndInsert(const RigidBodyTree& model, const std::string& name,
-                        vector<int>& position_list) {
-  auto position_indices = getJointPositionVectorIndices(model, name);
+                        std::vector<int>& position_list) {
+  auto position_indices = GetJointPositionVectorIndices(model, name);
 
   position_list.insert(position_list.end(), position_indices.begin(),
                        position_indices.end());
 }
 
 GTEST_TEST(testIKMoreConstraints, IKMoreConstraints) {
-  RigidBodyTree model("examples/Atlas/urdf/atlas_minimal_contact.urdf");
+  RigidBodyTree model(
+      GetDrakePath() + "/examples/Atlas/urdf/atlas_minimal_contact.urdf");
 
   Vector2d tspan;
   tspan << 0, 1;
@@ -107,7 +117,6 @@ GTEST_TEST(testIKMoreConstraints, IKMoreConstraints) {
   lfoot_pos_lb(2) += 0.001;
   Vector3d lfoot_pos_ub = lfoot_pos_lb;
   lfoot_pos_ub(2) += 0.01;
-  // std::cout << lfoot_pos0.transpose() << " lfoot\n" ;
   WorldPositionConstraint kc_lfoot_pos(&model, l_foot, l_foot_pt, lfoot_pos_lb,
                                        lfoot_pos_ub, tspan);
   Eigen::Vector4d quat_des(1, 0, 0, 0);
@@ -127,7 +136,6 @@ GTEST_TEST(testIKMoreConstraints, IKMoreConstraints) {
   rfoot_pos_lb(2) += 0.001;
   Vector3d rfoot_pos_ub = rfoot_pos_lb;
   rfoot_pos_ub(2) += 0.001;
-  // std::cout << rfoot_pos0.transpose() << " lfoot\n" ;
   WorldPositionConstraint kc_rfoot_pos(&model, r_foot, r_foot_pt, rfoot_pos_lb,
                                        rfoot_pos_ub, tspan);
   WorldQuatConstraint kc_rfoot_quat(&model, r_foot, quat_des, tol, tspan);
@@ -146,7 +154,6 @@ GTEST_TEST(testIKMoreConstraints, IKMoreConstraints) {
   rhand_pos_lb(2) += 0.05;
   Vector3d rhand_pos_ub = rhand_pos_lb;
   rhand_pos_ub(2) += 0.05;
-  // std::cout << rhand_pos_ub.transpose() << " rhand\n" ;
   WorldPositionConstraint kc_rhand(&model, r_hand, r_hand_pt, rhand_pos_lb,
                                    rhand_pos_ub, tspan);
 
@@ -177,11 +184,11 @@ GTEST_TEST(testIKMoreConstraints, IKMoreConstraints) {
   IKoptions ikoptions(&model);
   VectorXd q_sol(model.number_of_positions());
   int info;
-  vector<string> infeasible_constraint;
+  std::vector<std::string> infeasible_constraint;
   inverseKin(&model, qstar, qstar, constraint_array.size(),
              constraint_array.data(), ikoptions,
              &q_sol, &info, &infeasible_constraint);
-  printf("INFO = %d\n", info);
+  printf("info = %d\n", info);
   EXPECT_EQ(info, 1);
 
   /////////////////////////////////////////
@@ -193,3 +200,6 @@ GTEST_TEST(testIKMoreConstraints, IKMoreConstraints) {
   EXPECT_TRUE(CompareMatrices(com, Vector3d(0.074890, -0.037551, 1.008913),
                               1e-4, MatrixCompareType::absolute));
 }
+
+}  // namespace
+}  // namespace drake

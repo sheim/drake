@@ -19,7 +19,25 @@ own Github account and then push your changes into a branch on your fork. Once
 you believe your code is ready to be merged into Drake's primary repository,
 open a `pull request <https://help.github.com/articles/using-pull-requests/>`_
 via the Github website. Your code will then undergo an interactive review
-process before it is merged into Drake's primary repository.
+process and :ref:`Continuous Integration (CI) <continuous_integration_notes>`
+tests before it is merged into
+`Drake's primary repository <https://github.com/RobotLocomotion/drake>`_.
+
+Drake's :ref:`CI service <continuous_integration_notes>` runs on all pull requests each time they are
+submitted and updated. Pull requests cannot be merged into master unless all
+unit tests pass on all
+:ref:`supported platform configurations <supported-configurations>`.
+
+Drake's CI server also runs continuously on
+`Drake's primary master branch <https://github.com/RobotLocomotion/drake>`_
+using an even more comprehensive set of unit tests.
+If problems are detected on this branch, the build cop will
+:ref:`revert the PRs that most likely caused the problem <build_cop>`.
+To increase the likelihood that your pull requests pass CI tests and are not
+reverted, you can run the unit tests locally. Instructions for how to do that
+are provided :ref:`here <unit-test-instructions>`. Note, however, that there are
+many computationally-demanding tests and running the entire test suite can take
+several hours depending on your machine.
 
 We would like to hear about your success stories if you've used Drake in your
 own projects.  Please consider contributing to our :doc:`gallery` by editing
@@ -56,35 +74,55 @@ On Ubuntu and OS X, the "Unix Makefiles" and "Ninja" CMake generators are
 supported. On Windows, the "Visual Studio 14 2015",
 "Visual Studio 14 2015 Win64", and "Ninja" CMake generators are supported.
 
-The supported version of MATLAB is R2015b. The supported version of the
-Java Development Kit is 7.
+The supported version of MATLAB is R2015b.
+
+Minimal configuration is defined as the minimal required externals from
+the superbuild. This is configured by turning off all externals using
+``ccmake`` or ``cmake-gui`` except for ``WITH_EIGEN``, ``WITH_GOOGLETEST``,
+and  ``WITH_GFLAGS``, which should be set to ``ON``.
 
 +-----------------------------------------+--------------------+-------------------+---------+
-| Operating System                        | Compiler           | Superbuild Deps   | Build   |
+| Operating System                        | Compilers          | Superbuild Deps   | Build   |
 +=========================================+====================+===================+=========+
-| Ubuntu 14.04 LTS                        | GCC 4.9            | Default           | Debug   |
+| Ubuntu 14.04 LTS                        | | GCC 4.9          | Minimal           | Debug   |
+|                                         | | Java 1.7         |                   +---------+
+|                                         |                    |                   | Release |
+|                                         |                    +-------------------+---------+
+|                                         |                    | Default           | Debug   |
 |                                         |                    |                   +---------+
 |                                         |                    |                   | Release |
 |                                         |                    +-------------------+---------+
 |                                         |                    | Default + MATLAB  | Release |
 |                                         +--------------------+-------------------+---------+
-|                                         | Clang 3.7          | Default           | Debug   |
-|                                         |                    |                   +---------+
+|                                         | | Clang 3.7        | Default           | Debug   |
+|                                         | | Java 1.7         |                   +---------+
 |                                         |                    |                   | Release |
 +-----------------------------------------+--------------------+-------------------+---------+
-| | Windows Server 2012 R2 or Windows 8.1 | MSVC 14 32-bit     | Default           | Debug   |
-| | Visual Studio 2015 (any edition)      |                    |                   +---------+
+| | Windows Server 2012 R2 or Windows 8.1 | | MSVC 14 32-bit   | Minimal           | Debug   |
+| | Visual Studio 2015 (any edition)      | | Java 1.7         |                   +---------+
+|                                         |                    |                   | Release |
+|                                         |                    +-------------------+---------+
+|                                         |                    | Default           | Debug   |
+|                                         |                    |                   +---------+
 |                                         |                    |                   | Release |
 |                                         |                    +-------------------+---------+
 |                                         |                    | Default + MATLAB  | Release |
 |                                         +--------------------+-------------------+---------+
-|                                         | MSVC 14 64-bit     | Default           | Debug   |
+|                                         | | MSVC 14 64-bit   | Minimal           | Debug   |
+|                                         | | Java 1.7         |                   +---------+
+|                                         |                    |                   | Release |
+|                                         |                    +-------------------+---------+
+|                                         |                    | Default           | Debug   |
 |                                         |                    |                   +---------+
 |                                         |                    |                   | Release |
 |                                         |                    +-------------------+---------+
 |                                         |                    | Default + MATLAB  | Release |
 +-----------------------------------------+--------------------+-------------------+---------+
-| OS X 10.10                              | Apple Clang 7.0    | Default           | Debug   |
+| OS X 10.10                              | | Apple Clang 7.0  | Minimal           | Debug   |
+|                                         | | Java 1.8         |                   +---------+
+|                                         |                    |                   | Release |
+|                                         |                    +-------------------+---------+
+|                                         |                    | Default           | Debug   |
 |                                         |                    |                   +---------+
 |                                         |                    |                   | Release |
 |                                         |                    +-------------------+---------+
@@ -100,6 +138,10 @@ Review Process
 For complex changes, especially those that will span multiple PRs, please
 open a GitHub issue and solicit design feedback before you invest a lot of
 time in code.
+
+Before your submit a pull request, please consult the
+:ref:`Code Review Checklist <code-review-checklist>`,
+where a list of the most frequent problems are collected.
 
 Be prepared to engage in active code review on your pull requests.  The Drake
 code review process has two phases: feature review and platform review. You
@@ -131,6 +173,7 @@ make the review faster.
 - @ggould-tri (Toyota Research Institute)
 - @jwnimmer-tri (Toyota Research Institute)
 - @psiorx (MIT)
+- @sammy-tri (Toyota Research Institute)
 - @sherm1 (Toyota Research Institute)
 - @RussTedrake (MIT / Toyota Research Institute)
 
@@ -151,6 +194,8 @@ Review Process Tooling
 
     reviewable
 
+.. _continuous_integration_notes:
+
 Continuous Integration Notes
 ============================
 .. toctree::
@@ -165,6 +210,7 @@ Documentation Instructions
 .. toctree::
     :maxdepth: 1
 
+    documentation_instructions
     doxygen_instructions
     sphinx_instructions
 
@@ -190,6 +236,7 @@ Programming Style Notes
 .. toctree::
     :maxdepth: 1
 
+    code_review_checklist
     code_style_guide
     code_style_tools
 

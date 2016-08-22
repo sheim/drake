@@ -15,7 +15,7 @@ Install Prerequisites
 C++ Compiler
 ------------
 
-A compiler supporting C++11 or higher is required. The installation process
+A compiler supporting C++14 or higher is required. The installation process
 differs depending on which version of Ubuntu is being used.
 
 Ubuntu 15.10 (Wily)
@@ -23,7 +23,7 @@ Ubuntu 15.10 (Wily)
 
 On Ubuntu 15.10 (Wily) and higher the system compiler is sufficient::
 
-    sudo apt-get install g++-multilib
+    sudo apt-get install g++-multilib gfortran
 
 Ubuntu 14.04 LTS (Trusty)
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -95,7 +95,6 @@ Other prerequisites may be installed as follows::
       make mpich ninja-build perl pkg-config python-bs4 python-dev \
       python-gtk2 python-html5lib python-numpy python-pip python-sphinx \
       python-vtk subversion swig unzip valgrind
-    sudo pip install -U cpplint
 
 Environment
 -----------
@@ -109,16 +108,26 @@ Compiler Environment Variables
 If the system's default compiler is not being used (for example if
 gcc/g++/gfortran 4.9 are being used on Ubuntu 14.04 LTS), the desired compiler
 must be manually specified. One way to do this is to set the ``CC``, ``CXX``,
-and ``FC`` environment variables. This can be done by executing the command
+``FC``, and ``F77`` environment variables. This can be done by executing the command
 below. To avoid needing to run this command each time a new terminal is opened,
 the command below can also be added to the ``~/.bashrc`` file::
 
-    export CC=gcc-4.9 CXX=g++-4.9 FC=gfortran-4.9
+    export CC=gcc-4.9 CXX=g++-4.9 FC=gfortran-4.9 F77=gfortran-4.9
 
 Alternatively, every call to ``make`` or ``cmake`` can be preceded with
-environment variable settings that specify the correct compiler::
+environment variable settings that specify the correct compiler. For example::
 
-    env CC=gcc-4.9 CXX=g++-4.9 FC=gfortran-4.9 make ...
+    env CC=gcc-4.9 CXX=g++-4.9 FC=gfortran-4.9 F77=gfortran-4.9 make ...
+
+The above examples result in the use of ``gcc`` as the compiler. If you want to
+use ``clang`` as the compiler, place the following in your ``~/.bashrc`` file::
+
+    export CC=clang-3.7 CXX=clang++-3.7 FC=gfortran-4.9 F77=gfortran-4.9
+
+Or precede every call to ``make`` or ``cmake`` with compiler specifications.
+For example::
+
+    env CC=clang-3.7 CXX=clang++-3.7 FC=gfortran-4.9 F77=gfortran-4.9 make ...
 
 CMake Environment Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
